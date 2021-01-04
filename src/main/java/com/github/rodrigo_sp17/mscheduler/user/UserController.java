@@ -5,10 +5,10 @@ import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,6 +23,13 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping
+    public ResponseEntity<AppUser> getLoggedUser(Authentication auth) {
+        String username = auth.getName();
+        AppUser user = userService.getUserByUsername(username);
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/signup")
@@ -82,9 +89,24 @@ public class UserController {
         }
         user.getUserInfo().setEmail(email);
 
-        var addedUser = userService.createUser(user);
+        var addedUser = userService.saveUser(user);
         log.info("Created new user: " + addedUser.getUserInfo().getUserName());
+
+        // TODO - convert to proper status
         return ResponseEntity.ok(getRequestFromUser(addedUser));
+    }
+
+    @PutMapping
+    public ResponseEntity<CreateUserRequest> editUserInfo(@RequestBody CreateUserRequest req) {
+        AppUser userToEdit = userService.getUserById(req.getUserId());
+        if (req.getName() != null) {
+            userToEdit.getUserInfo().setName(req.getName());
+        }
+        if (req.getEmail() != null) {
+            userToEdit.getUserInfo().setEmail(req.getEmail());
+        }
+        AppUser editedUser = userService.saveUser(userToEdit);
+        return ResponseEntity.ok(getRequestFromUser(editedUser));
     }
 
     /*@GetMapping()

@@ -4,6 +4,7 @@ import com.github.rodrigo_sp17.mscheduler.user.*;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,27 +13,26 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
-import java.util.Locale;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-    import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 // TODO - remove the security exclusions when functionality is thoroughly written
 @WebMvcTest(value = UserController.class, excludeAutoConfiguration = {UserDetailsServiceAutoConfiguration.class, SecurityAutoConfiguration.class})
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
+@ContextConfiguration
 public class UserControllerTest {
 
     @MockBean
@@ -44,12 +44,29 @@ public class UserControllerTest {
     @Autowired
     private MockMvc mvc;
 
+    /*
+    @Test
+    @WithMockUser(username = "john@doe123")
+    public void testGetLoggedUser() throws Exception {
+        AppUser user = getUser();
+        when(userService.getUserByUsername(user.getUserInfo().getUserName()))
+                .thenReturn(user);
+
+        mvc.perform(get(new URI("/api/user")))
+                .andExpect(status().isOk())
+                .andExpect(content()
+                        .string(containsString("john@doe@gmail.com")));
+
+    }
+    */
+
+
     @Test
     public void testCreateUser() throws Exception {
         AppUser parsedUser = getUser();
         parsedUser.setUserId(null);
 
-        when(userService.createUser(any())).thenReturn(getUser());
+        when(userService.saveUser(any())).thenReturn(getUser());
 
         // Manually parses the JSON to allow @JsonIgnore annotation on response
         JSONObject jsonRequest = new JSONObject();
@@ -83,7 +100,7 @@ public class UserControllerTest {
         parsedUser.getUserInfo().setUserName("john@doe123");
 
         when(userService.getUserByUsername("john@doe123")).thenReturn(getUser());
-        when(userService.createUser(parsedUser)).thenReturn(getUser());
+        when(userService.saveUser(parsedUser)).thenReturn(getUser());
 
         // Test wrong name
         JSONObject jsonRequest = new JSONObject();
@@ -169,14 +186,44 @@ public class UserControllerTest {
                 .andExpect(status().reason(containsString("Invalid email")));
     }
 
-    private CreateUserRequest getUserRequest() {
+    @Test
+    public void testEditUser() throws Exception {
+        AppUser originalUser = getUser();
+        AppUser editedUser = getUser();
+        editedUser.getUserInfo().setEmail("newmail@hotmail.com");
+        var request = new JSONObject();
+        request.put("userId", originalUser.getUserId());
+        request.put("email", "newmail@hotmail.com");
+
+        when(userService.getUserById(1L)).thenReturn(originalUser);
+        when(userService.saveUser(any())).thenReturn(editedUser);
+
+        mvc.perform(put(new URI("/api/user"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("newmail@hotmail.com")));
+    }
+
+    private JSONObject getUserRequest() {
         CreateUserRequest user = new CreateUserRequest();
         user.setName("John Doe");
         user.setEmail("john_doe@gmail.com");
         user.setUsername("john@Doe123");
         user.setPassword("testPassword");
         user.setConfirmPassword("testPassword");
-        return user;
+
+        JSONObject jsonRequest = new JSONObject();
+        try {
+            jsonRequest.put("username", user.getUsername());
+            jsonRequest.put("name", user.getName());
+            jsonRequest.put("password", user.getPassword());
+            jsonRequest.put("confirmPassword", user.getPassword());
+            jsonRequest.put("email", user.getEmail());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonRequest;
     }
 
     private AppUser getUser() {

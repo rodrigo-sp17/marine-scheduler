@@ -18,7 +18,7 @@ public class UserService {
     }
 
 
-    public AppUser getUser(Long userId) {
+    public AppUser getUserById(Long userId) {
         return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 
@@ -28,7 +28,7 @@ public class UserService {
     }
 
     @Transactional
-    public AppUser createUser(AppUser user) {
+    public AppUser saveUser(AppUser user) {
         return userRepository.save(user);
     }
 }
