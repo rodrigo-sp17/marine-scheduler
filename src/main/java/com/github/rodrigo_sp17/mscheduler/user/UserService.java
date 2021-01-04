@@ -18,12 +18,17 @@ public class UserService {
     }
 
 
-    public AppUser getUser(Long userId) {
+    public AppUser getUserById(Long userId) {
         return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 
+    public AppUser getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
     @Transactional
-    public AppUser createUser(AppUser user) {
+    public AppUser saveUser(AppUser user) {
         return userRepository.save(user);
     }
 }
