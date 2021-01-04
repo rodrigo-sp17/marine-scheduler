@@ -22,6 +22,11 @@ public class UserService {
         return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 
+    public AppUser getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
     @Transactional
     public AppUser createUser(AppUser user) {
         return userRepository.save(user);
