@@ -3,12 +3,14 @@ package com.github.rodrigo_sp17.mscheduler.user;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
+import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,8 +23,12 @@ public class UserController {
     @Autowired
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
+
+    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
@@ -52,7 +58,6 @@ public class UserController {
 
         // Username validation
         // Usernames are case-insensitive and unique
-        // TODO - is username validation is part of spring security validation?
         String username = req.getUsername()
                 .trim()
                 .toLowerCase();
@@ -60,11 +65,11 @@ public class UserController {
             errorMsg = "Usernames must be between 6 to 30 characters long!";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
-        if (userService.getUserByUsername(username) != null) {
+        if (!userService.isUsernameAvailable(username)) {
             errorMsg = "The username already exists. Choose another one!";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
-        user.getUserInfo().setUserName(username);
+        user.getUserInfo().setUsername(username);
 
         // Password validation
         String password = req.getPassword();
@@ -77,7 +82,7 @@ public class UserController {
             errorMsg = "Passwords must be between 8 and 64 characters long!";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
-        user.getUserInfo().setPassword(password);
+        user.getUserInfo().setPassword(passwordEncoder.encode(password));
 
         // Email validation
         String email = req.getEmail()
@@ -90,7 +95,7 @@ public class UserController {
         user.getUserInfo().setEmail(email);
 
         var addedUser = userService.saveUser(user);
-        log.info("Created new user: " + addedUser.getUserInfo().getUserName());
+        log.info("Created new user: " + addedUser.getUserInfo().getUsername());
 
         // TODO - convert to proper status
         return ResponseEntity.ok(getRequestFromUser(addedUser));
@@ -126,12 +131,10 @@ public class UserController {
     private CreateUserRequest getRequestFromUser(AppUser user) {
         CreateUserRequest dto = new CreateUserRequest();
         dto.setUserId(user.getUserId());
-        dto.setUsername(user.getUserInfo().getUserName());
+        dto.setUsername(user.getUserInfo().getUsername());
         dto.setName(user.getUserInfo().getName());
         dto.setEmail(user.getUserInfo().getEmail());
         return dto;
     }
-
-
 
 }

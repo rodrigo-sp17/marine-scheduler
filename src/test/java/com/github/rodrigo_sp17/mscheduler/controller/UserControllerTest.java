@@ -8,14 +8,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
@@ -28,11 +25,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// TODO - remove the security exclusions when functionality is thoroughly written
-@WebMvcTest(value = UserController.class, excludeAutoConfiguration = {UserDetailsServiceAutoConfiguration.class, SecurityAutoConfiguration.class})
+
+@WebMvcTest(value = UserController.class)
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-@ContextConfiguration
 public class UserControllerTest {
 
     @MockBean
@@ -70,7 +66,7 @@ public class UserControllerTest {
 
         // Manually parses the JSON to allow @JsonIgnore annotation on response
         JSONObject jsonRequest = new JSONObject();
-        jsonRequest.put("username", parsedUser.getUserInfo().getUserName());
+        jsonRequest.put("username", parsedUser.getUserInfo().getUsername());
         jsonRequest.put("name", parsedUser.getUserInfo().getName());
         jsonRequest.put("password", parsedUser.getUserInfo().getPassword());
         jsonRequest.put("confirmPassword", parsedUser.getUserInfo().getPassword());
@@ -87,7 +83,7 @@ public class UserControllerTest {
         var responseJson = mvcResult.getResponse().getContentAsString();
 
         assertTrue(responseJson.contains(parsedUser.getUserInfo().getName()));
-        assertTrue(responseJson.contains(parsedUser.getUserInfo().getUserName()));
+        assertTrue(responseJson.contains(parsedUser.getUserInfo().getUsername()));
         assertTrue(responseJson.contains(parsedUser.getUserInfo().getEmail()));
         // Ensures password is not returned
         assertFalse(responseJson.contains(parsedUser.getUserInfo().getPassword()));
@@ -97,7 +93,7 @@ public class UserControllerTest {
     public void testWrongSignup() throws Exception {
         AppUser parsedUser = getUser();
         parsedUser.setUserId(null);
-        parsedUser.getUserInfo().setUserName("john@doe123");
+        parsedUser.getUserInfo().setUsername("john@doe123");
 
         when(userService.getUserByUsername("john@doe123")).thenReturn(getUser());
         when(userService.saveUser(parsedUser)).thenReturn(getUser());
@@ -105,7 +101,7 @@ public class UserControllerTest {
         // Test wrong name
         JSONObject jsonRequest = new JSONObject();
         jsonRequest.put("name", "");
-        jsonRequest.put("username", parsedUser.getUserInfo().getUserName());
+        jsonRequest.put("username", parsedUser.getUserInfo().getUsername());
         jsonRequest.put("password", parsedUser.getUserInfo().getPassword());
         jsonRequest.put("confirmPassword", parsedUser.getUserInfo().getPassword());
         jsonRequest.put("email", parsedUser.getUserInfo().getEmail());
@@ -232,7 +228,7 @@ public class UserControllerTest {
         user.setUserId(1L);
         user.getUserInfo().setName("John Doe");
         user.getUserInfo().setEmail("john_doe@gmail.com");
-        user.getUserInfo().setUserName("john@doe123");
+        user.getUserInfo().setUsername("john@doe123");
         user.getUserInfo().setPassword("testPassword");
         return user;
     }

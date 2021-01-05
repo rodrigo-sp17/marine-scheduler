@@ -22,9 +22,16 @@ public class UserService {
         return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 
+    public boolean isUsernameAvailable(String username) {
+        return userRepository.findByUsername(username) == null;
+    }
+
     public AppUser getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(UserNotFoundException::new);
+        var user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new UserNotFoundException("Could not find user " + username);
+        }
+        return user;
     }
 
     @Transactional
