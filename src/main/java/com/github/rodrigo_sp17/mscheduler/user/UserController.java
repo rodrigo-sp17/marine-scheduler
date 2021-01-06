@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -32,6 +34,12 @@ public class UserController {
     }
 
     @GetMapping
+    public ResponseEntity<List<String>> getUsernames() {
+        List<String> result = userService.getUsernames();
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/me")
     public ResponseEntity<AppUser> getLoggedUser(Authentication auth) {
         String username = auth.getName();
         AppUser user = userService.getUserByUsername(username);

@@ -3,7 +3,6 @@ package com.github.rodrigo_sp17.mscheduler.shift;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 

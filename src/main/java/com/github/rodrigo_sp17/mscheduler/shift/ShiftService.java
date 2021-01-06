@@ -5,9 +5,7 @@ import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRepository;
 import com.github.rodrigo_sp17.mscheduler.shift.exception.ShiftNotFoundException;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
-import com.github.rodrigo_sp17.mscheduler.user.data.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
