@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/friends")
+@RequestMapping("/api/friend")
 public class FriendController {
 
     @Autowired
@@ -19,35 +19,36 @@ public class FriendController {
         this.friendService = friendService;
     }
 
-    /**
-     * Gets list of all friends of logged user
-     * @return ResponseEntity containing all users registered as friends
-     */
     @GetMapping
     public ResponseEntity<List<AppUser>> getFriends(Authentication auth) {
-        // TODO
-        throw new UnsupportedOperationException();
+        var user = friendService.getFriendsByUser(auth.getName());
+        return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<AppUser> searchFriendByUserName(@RequestParam String userName,
-                                                          Authentication auth) {
-        // TODO
-        throw new UnsupportedOperationException();
+    @GetMapping("/request")
+    public ResponseEntity<List<FriendRequest>> getFriendRequests(Authentication auth) {
+        var request = friendService.getFriendRequestsForUser(auth.getName());
+        return ResponseEntity.ok(request);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity addFriendByUserName(@RequestBody String userName,
-                                              Authentication auth) {
-        // TODO
-        throw new UnsupportedOperationException();
+    @PostMapping("/request")
+    public ResponseEntity<FriendRequest> requestFriendship(@RequestParam String username,
+                                                           Authentication auth) {
+        var request = friendService.requestFriendship(username, auth.getName());
+        return ResponseEntity.ok(request);
+    }
+
+    @PostMapping("/accept")
+    public ResponseEntity<AppUser> acceptFriendship(@RequestParam String username,
+                                                    Authentication auth) {
+        var user = friendService.acceptFriendship(username, auth.getName());
+        return ResponseEntity.ok(user);
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity removeFriendByUserName(@RequestBody String userName,
+    public ResponseEntity<AppUser> removeFriendByUsername(@RequestParam String username,
                                                  Authentication auth) {
-        // TODO
-        throw new UnsupportedOperationException();
+        friendService.removeFriendByUsername(username, auth.getName());
+        return ResponseEntity.noContent().build();
     }
-
 }
