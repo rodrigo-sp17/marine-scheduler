@@ -65,7 +65,7 @@ class MarinerSchedulerApplicationTests {
 				.andExpect(status().isOk());
 
 		/*
-		mvc.perform(get(new URI("/api/shifts"))
+		mvc.perform(get(new URI("/api/shift"))
 				.header("Authorization", token))
 				.andExpect(status().isOk());
 		*/
