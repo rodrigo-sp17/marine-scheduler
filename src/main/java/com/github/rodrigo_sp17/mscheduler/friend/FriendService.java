@@ -1,5 +1,8 @@
 package com.github.rodrigo_sp17.mscheduler.friend;
 
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestRepository;
+import com.github.rodrigo_sp17.mscheduler.friend.exception.FriendRequestNotFoundException;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.slf4j.Logger;

@@ -1,5 +1,6 @@
-package com.github.rodrigo_sp17.mscheduler.friend;
+package com.github.rodrigo_sp17.mscheduler.friend.data;
 
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

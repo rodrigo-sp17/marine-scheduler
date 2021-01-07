@@ -1,6 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler;
 
-import com.github.rodrigo_sp17.mscheduler.friend.FriendRequest;
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;

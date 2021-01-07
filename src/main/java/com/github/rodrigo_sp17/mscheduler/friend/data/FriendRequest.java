@@ -1,4 +1,4 @@
-package com.github.rodrigo_sp17.mscheduler.friend;
+package com.github.rodrigo_sp17.mscheduler.friend.data;
 
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import lombok.Data;

@@ -1,10 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler;
 
-import com.github.rodrigo_sp17.mscheduler.friend.FriendRequestRepository;
-import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRepository;
 import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
-import com.github.rodrigo_sp17.mscheduler.user.data.UserRepository;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.MethodOrderer;

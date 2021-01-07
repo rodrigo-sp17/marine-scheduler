@@ -1,7 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.user.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.github.rodrigo_sp17.mscheduler.friend.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import lombok.*;
 

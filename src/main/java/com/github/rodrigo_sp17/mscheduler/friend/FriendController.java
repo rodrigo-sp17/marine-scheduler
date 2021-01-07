@@ -1,5 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.friend;
 
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

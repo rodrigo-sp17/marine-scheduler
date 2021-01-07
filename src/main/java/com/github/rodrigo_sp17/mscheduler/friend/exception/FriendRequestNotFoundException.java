@@ -1,4 +1,4 @@
-package com.github.rodrigo_sp17.mscheduler.friend;
+package com.github.rodrigo_sp17.mscheduler.friend.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
