@@ -20,21 +20,18 @@ import java.util.List;
 public class CalendarController {
 
     @Autowired
-    private final FriendService friendService;
+    private final CalendarService calendarService;
 
-    @Autowired
-    private final ShiftService shiftService;
-
-    public CalendarController(FriendService friendService, ShiftService shiftService) {
-        this.friendService = friendService;
-        this.shiftService = shiftService;
+    public CalendarController(CalendarService calendarService) {
+        this.calendarService = calendarService;
     }
 
     @GetMapping("/available")
     public ResponseEntity<List<AppUser>> getAvailableFriends(@RequestParam
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                              Authentication auth) {
-        // TODO
-        throw new UnsupportedOperationException();
+        var availableFriends = calendarService.getAvailableFriends(date,
+                auth.getName());
+        return ResponseEntity.ok(availableFriends);
     }
 }

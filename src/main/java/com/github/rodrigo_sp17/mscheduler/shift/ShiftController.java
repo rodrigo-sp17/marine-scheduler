@@ -146,10 +146,12 @@ public class ShiftController {
                                              Authentication auth) {
         String errorMsg;
         Shift shiftToDelete = shiftService.getShiftById(id, auth.getName());
+
         if (shiftToDelete == null) {
             errorMsg = "Either you are not the owner, or the shift can't be found!";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
+
         shiftService.removeShift(shiftToDelete.getShiftId());
         return ResponseEntity.noContent().build();
     }

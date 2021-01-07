@@ -3,10 +3,7 @@ package com.github.rodrigo_sp17.mscheduler.friend;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity

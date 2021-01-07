@@ -35,8 +35,8 @@ public class FriendService {
     }
 
     public List<FriendRequest> getFriendRequestsForUser(String username) {
-        AppUser user = userService.getUserByUsername(username);
-        return user.getFriendRequests();
+        List<FriendRequest> requests = requestRepository.findRequestsContaining(username);
+        return requests;
     }
 
     @Transactional
@@ -44,9 +44,10 @@ public class FriendService {
         // check if there is a request already
         AppUser user = userService.getUserByUsername(username);
 
-        List<FriendRequest> requests = user.getFriendRequests();
+        List<FriendRequest> requests = requestRepository.findRequestsContaining(username);
         List<Long> requestIds = requests.stream()
-                .filter(fr -> fr.getTarget().getUserInfo().getUsername().equals(friendName))
+                .filter(fr -> fr.getTarget().getUserInfo().getUsername().equals(friendName)
+                            || fr.getSource().getUserInfo().getUsername().equals(friendName))
                 .map(fr -> fr.getId())
                 .collect(Collectors.toList());
 
@@ -70,10 +71,6 @@ public class FriendService {
 
         // persists all
         var result = requestRepository.save(friendRequest);
-        user.getFriendRequests().add(friendRequest);
-        friend.getFriendRequests().add(friendRequest);
-        userService.saveUser(user);
-        userService.saveUser(friend);
 
         log.info("Friend request created");
         return result;
@@ -82,27 +79,24 @@ public class FriendService {
     @Transactional
     public AppUser acceptFriendship(String friendName, String username) {
         FriendRequest request = requestRepository.findBySourceUsernameAndTargetUsername(
-                username,
-                friendName);
+                friendName,
+                username);
         if (request == null) {
             throw new FriendRequestNotFoundException();
         }
 
-        AppUser user = request.getSource();
-        AppUser friend = request.getTarget();
+        AppUser friend = request.getSource();
+        AppUser user = request.getTarget();
 
         // Mutually adds friends
         user.getFriends().add(friend);
-        friend.getFriends().add(user);
-
-        // Persists users
-        userService.saveUser(user);
-        AppUser savedFriend = userService.saveUser(friend);
+        AppUser savedUser = userService.saveUser(user);
+        friend.getFriends().add(savedUser);
 
         // Removes request since friendship was established
-        requestRepository.delete(request);
+        requestRepository.deleteById(request.getId());
 
-        return savedFriend;
+        return friend;
     }
 
     @Transactional

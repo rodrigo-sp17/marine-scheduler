@@ -1,12 +1,10 @@
 package com.github.rodrigo_sp17.mscheduler.controller;
 
+import com.github.rodrigo_sp17.mscheduler.TestData;
 import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
 import com.github.rodrigo_sp17.mscheduler.user.UserController;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
-import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
-import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,38 +36,18 @@ public class UserControllerTest {
     @MockBean
     private UserService userService;
 
-    //@Autowired
-    //private JacksonTester<CreateUserRequest> userRequestJacksonTester;
-
     @Autowired
     private MockMvc mvc;
 
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 
-    /*
-    @Test
-    @WithMockUser(username = "john@doe123")
-    public void testGetLoggedUser() throws Exception {
-        AppUser user = getUser();
-        when(userService.getUserByUsername(user.getUserInfo().getUserName()))
-                .thenReturn(user);
-
-        mvc.perform(get(new URI("/api/user")))
-                .andExpect(status().isOk())
-                .andExpect(content()
-                        .string(containsString("john@doe@gmail.com")));
-
-    }
-    */
-
-
     @Test
     public void testCreateUser() throws Exception {
-        AppUser parsedUser = getUser();
+        AppUser parsedUser = TestData.getUsers().get(0);
         parsedUser.setUserId(null);
 
-        when(userService.saveUser(any())).thenReturn(getUser());
+        when(userService.saveUser(any())).thenReturn(TestData.getUsers().get(0));
         when(userService.isUsernameAvailable("john@doe123")).thenReturn(true);
 
         // Manually parses the JSON to allow @JsonIgnore annotation on response
@@ -79,8 +57,6 @@ public class UserControllerTest {
         jsonRequest.put("password", parsedUser.getUserInfo().getPassword());
         jsonRequest.put("confirmPassword", parsedUser.getUserInfo().getPassword());
         jsonRequest.put("email", parsedUser.getUserInfo().getEmail());
-
-        //var userRequest = getUserRequest();
 
         var mvcResult = mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
@@ -99,12 +75,12 @@ public class UserControllerTest {
 
     @Test
     public void testWrongSignup() throws Exception {
-        AppUser parsedUser = getUser();
+        AppUser parsedUser = TestData.getUsers().get(0);
         parsedUser.setUserId(null);
         parsedUser.getUserInfo().setUsername("john@doe123");
 
-        when(userService.getUserByUsername("john@doe123")).thenReturn(getUser());
-        when(userService.saveUser(parsedUser)).thenReturn(getUser());
+        when(userService.getUserByUsername("john@doe123")).thenReturn(TestData.getUsers().get(0));
+        when(userService.saveUser(parsedUser)).thenReturn(TestData.getUsers().get(0));
         when(userService.isUsernameAvailable(any())).thenReturn(false);
 
         // Test wrong name
@@ -196,8 +172,8 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = "john@doe123")
     public void testEditUser() throws Exception {
-        AppUser originalUser = getUser();
-        AppUser editedUser = getUser();
+        AppUser originalUser = TestData.getUsers().get(0);
+        AppUser editedUser = TestData.getUsers().get(0);
         editedUser.getUserInfo().setEmail("newmail@hotmail.com");
         var request = new JSONObject();
         request.put("userId", originalUser.getUserId());
@@ -213,37 +189,7 @@ public class UserControllerTest {
                 .andExpect(content().string(containsString("newmail@hotmail.com")));
     }
 
-    private JSONObject getUserRequest() {
-        CreateUserRequest user = new CreateUserRequest();
-        user.setName("John Doe");
-        user.setEmail("john_doe@gmail.com");
-        user.setUsername("john@Doe123");
-        user.setPassword("testPassword");
-        user.setConfirmPassword("testPassword");
 
-        JSONObject jsonRequest = new JSONObject();
-        try {
-            jsonRequest.put("username", user.getUsername());
-            jsonRequest.put("name", user.getName());
-            jsonRequest.put("password", user.getPassword());
-            jsonRequest.put("confirmPassword", user.getPassword());
-            jsonRequest.put("email", user.getEmail());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonRequest;
-    }
-
-    private AppUser getUser() {
-        AppUser user = new AppUser();
-        user.setUserInfo(new UserInfo());
-        user.setUserId(1L);
-        user.getUserInfo().setName("John Doe");
-        user.getUserInfo().setEmail("john_doe@gmail.com");
-        user.getUserInfo().setUsername("john@doe123");
-        user.getUserInfo().setPassword("testPassword");
-        return user;
-    }
 
 
 
