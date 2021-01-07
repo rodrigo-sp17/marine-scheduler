@@ -1,7 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.controller;
 
+import com.github.rodrigo_sp17.mscheduler.TestData;
 import com.github.rodrigo_sp17.mscheduler.friend.FriendController;
-import com.github.rodrigo_sp17.mscheduler.friend.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.friend.FriendService;
 import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
@@ -14,8 +14,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,7 +54,7 @@ public class FriendControllerTest {
     @Test
     @WithMockUser(username = "john@doe123")
     public void testGetFriendRequests() throws Exception {
-        var fr = getFriendRequest();
+        var fr = TestData.getFriendRequest();
         var users = getUsers();
 
 
@@ -72,7 +70,7 @@ public class FriendControllerTest {
     @Test
     @WithMockUser(username = "john@doe123")
     public void testRequestFriendship() throws Exception {
-        var friendRequests = getFriendRequest();
+        var friendRequests = TestData.getFriendRequest();
 
         when(friendService.requestFriendship(
                 eq("jane_girl18"),
@@ -147,20 +145,5 @@ public class FriendControllerTest {
         return Arrays.asList(user, user2, user3);
     }
 
-    private List<FriendRequest> getFriendRequest() {
-        var fr = new FriendRequest();
-        fr.setId(1L);
-        fr.setSource(getUsers().get(0));
-        fr.setTarget(getUsers().get(1));
-        fr.setTimestamp(LocalDateTime.now(ZoneOffset.UTC));
-
-        var fr2 = new FriendRequest();
-        fr2.setId(2L);
-        fr2.setSource(getUsers().get(0));
-        fr2.setTarget(getUsers().get(2));
-        fr2.setTimestamp(LocalDateTime.now(ZoneOffset.UTC));
-
-        return Arrays.asList(fr, fr2);
-    }
 
 }
