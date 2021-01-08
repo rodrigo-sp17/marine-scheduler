@@ -2,6 +2,7 @@ package com.github.rodrigo_sp17.mscheduler.shift.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,7 +11,7 @@ import javax.persistence.ManyToOne;
 import java.time.LocalDate;
 
 @Entity
-public class Shift {
+public class Shift extends RepresentationModel<Shift> {
 
     /*
         AF:

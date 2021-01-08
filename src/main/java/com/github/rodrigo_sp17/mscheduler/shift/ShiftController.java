@@ -4,6 +4,9 @@ import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/shift")
@@ -32,18 +38,25 @@ public class ShiftController {
     @GetMapping("/{id}")
     public ResponseEntity<Shift> getShiftById(@PathVariable Long id,
                                               Authentication auth) {
-        Shift result = shiftService.getShiftById(id, auth.getName());
-        return ResponseEntity.ok(result);
+        Shift shift = shiftService.getShiftById(id, auth.getName());
+        shift.add(linkTo(methodOn(ShiftController.class).getShiftById(id, null))
+                .withSelfRel());
+        shift.add(linkTo(methodOn(ShiftController.class).getShifts(null)).withRel("shifts"));
+        return ResponseEntity.ok(shift);
     }
 
     @GetMapping
-    public ResponseEntity<List<Shift>> getShifts(Authentication auth) {
-        List<Shift> results = shiftService.getShiftsForUser(auth.getName());
-        return ResponseEntity.ok(results);
+    public ResponseEntity<CollectionModel<Shift>> getShifts(Authentication auth) {
+        List<Shift> shifts = shiftService.getShiftsForUser(auth.getName());
+        shifts.forEach(s -> s.add(linkTo(methodOn(ShiftController.class)
+                .getShiftById(s.getShiftId(), null)).withSelfRel()));
+        Link allShifts = linkTo(methodOn(ShiftController.class).getShifts(null))
+                .withRel("allShifts");
+        return ResponseEntity.ok(CollectionModel.of(shifts).add());
     }
 
     @PostMapping("/add")
-    public ResponseEntity<List<Shift>> addShift(@RequestBody ShiftRequest shiftRequest,
+    public ResponseEntity<CollectionModel<Shift>> addShift(@RequestBody ShiftRequest shiftRequest,
                                           Authentication auth) {
         String errorMsg;
         // Ensures a boarding date
@@ -100,13 +113,17 @@ public class ShiftController {
             shift.setUnavailabilityStartDate(
                     shift.getBoardingDate().minusDays(beforeDiff));
             shift.setUnavailabilityEndDate(
-                    shift.getLeavingDate().minusDays(afterDiff));
+                    shift.getLeavingDate().plusDays(afterDiff));
             shifts.add(shift);
         }
 
         // Saves shifts
-        List<Shift> result = shiftService.addShifts(shifts, auth.getName());
-        return ResponseEntity.ok(result);
+        List<Shift> addedShifts = shiftService.addShifts(shifts, auth.getName());
+        addedShifts.forEach(s -> s.add(linkTo(methodOn(ShiftController.class)
+                .getShiftById(s.getShiftId(), null)).withSelfRel()));
+        Link allShifts = linkTo(methodOn(ShiftController.class).getShifts(null))
+                .withRel("allShifts");
+        return ResponseEntity.ok(CollectionModel.of(addedShifts).add(allShifts));
     }
 
     @PutMapping("/edit")
@@ -138,12 +155,16 @@ public class ShiftController {
         shiftToEdit.setUnavailabilityEndDate(req.getUnavailabilityEndDate());
 
         Shift result = shiftService.editShift(shiftToEdit);
+        result.add(linkTo(methodOn(ShiftController.class)
+                .getShiftById(result.getShiftId(), null)).withSelfRel());
+        result.add(linkTo(methodOn(ShiftController.class).getShifts(null))
+                .withRel("allShifts"));
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/remove")
     public ResponseEntity<Shift> removeShift(@RequestParam Long id,
-                                             Authentication auth) {
+                                                           Authentication auth) {
         String errorMsg;
         Shift shiftToDelete = shiftService.getShiftById(id, auth.getName());
 
@@ -153,7 +174,9 @@ public class ShiftController {
         }
 
         shiftService.removeShift(shiftToDelete.getShiftId());
-        return ResponseEntity.noContent().build();
+        Link allShifts = linkTo(methodOn(ShiftController.class).getShifts(null))
+                .withRel("allShifts");
+        return ResponseEntity.noContent().header("Link", allShifts.getHref()).build();
     }
 
     /**

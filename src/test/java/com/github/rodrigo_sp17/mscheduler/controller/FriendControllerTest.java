@@ -79,7 +79,7 @@ public class FriendControllerTest {
 
         mvc.perform(post(new URI("/api/friend/request"))
                 .param("username", "jane_girl18"))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().string(containsString("John Doe")))
                 .andExpect(content().string(containsString("Jane Doe")));
     }
