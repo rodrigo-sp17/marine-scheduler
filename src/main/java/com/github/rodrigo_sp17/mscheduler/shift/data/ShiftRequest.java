@@ -1,8 +1,10 @@
 package com.github.rodrigo_sp17.mscheduler.shift.data;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import java.time.LocalDate;
 
-public class ShiftRequest {
+public class ShiftRequest extends RepresentationModel<ShiftRequest> {
 
     private Long shiftId;
 

@@ -60,7 +60,7 @@ class MarinerSchedulerApplicationTests {
 		mvc.perform(post(new URI("/api/user/signup"))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(json.toString()))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andReturn();
 
 		var jsonLogin = new JSONObject();
@@ -149,14 +149,14 @@ class MarinerSchedulerApplicationTests {
 		// Sends a friend request
 		mvc.perform(post(new URI("/api/friend/request"))
 				.param("username", "john@doe123"))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(content().string(containsString("John Doe")))
 				.andExpect(content().string(containsString("Jane Doe")))
 				.andExpect(content().string(containsString("2021")));
 
 		mvc.perform(post(new URI("/api/friend/request"))
 				.param("username", "joaozinn"))
-				.andExpect(status().isOk())
+				.andExpect(status().isCreated())
 				.andExpect(content().string(containsString("Joao Silva")))
 				.andExpect(content().string(containsString("joao_silva12@gmail.com")))
 				.andExpect(content().string(containsString("2021")));

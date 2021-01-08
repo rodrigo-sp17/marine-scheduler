@@ -1,8 +1,9 @@
 package com.github.rodrigo_sp17.mscheduler.user.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.hateoas.RepresentationModel;
 
-public class CreateUserRequest {
+public class CreateUserRequest extends RepresentationModel<CreateUserRequest> {
 
     private Long userId;
 

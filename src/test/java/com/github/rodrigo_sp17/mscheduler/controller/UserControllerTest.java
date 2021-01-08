@@ -61,7 +61,7 @@ public class UserControllerTest {
         var mvcResult = mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         var responseJson = mvcResult.getResponse().getContentAsString();

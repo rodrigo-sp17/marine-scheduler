@@ -42,6 +42,14 @@ public class FriendService {
         return requests;
     }
 
+    public FriendRequest getRequestById(Long requestId, String owner) {
+        FriendRequest request = requestRepository.findByIdAndSourceUsername(requestId, owner);
+        if (request == null) {
+            throw new FriendRequestNotFoundException("Friend request not found for requester");
+        }
+        return request;
+    }
+
     @Transactional
     public FriendRequest requestFriendship(String friendName, String username) {
         // check if there is a request already

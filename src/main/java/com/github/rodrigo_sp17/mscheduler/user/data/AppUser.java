@@ -3,13 +3,14 @@ package com.github.rodrigo_sp17.mscheduler.user.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import lombok.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
 @Data
-public class AppUser {
+public class AppUser extends RepresentationModel<AppUser> {
 
     @Id
     @GeneratedValue

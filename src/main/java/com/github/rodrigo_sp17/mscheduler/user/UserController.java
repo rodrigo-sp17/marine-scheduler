@@ -7,6 +7,8 @@ import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/user")
@@ -34,15 +39,18 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<String>> getUsernames() {
-        List<String> result = userService.getUsernames();
-        return ResponseEntity.ok(result);
+    public CollectionModel<String> getUsernames() {
+        List<String> usernames = userService.getUsernames();
+        Link selfLink = linkTo(methodOn(UserController.class).getUsernames()).withSelfRel();
+        return CollectionModel.of(usernames).add(selfLink);
     }
 
     @GetMapping("/me")
     public ResponseEntity<AppUser> getLoggedUser(Authentication auth) {
         String username = auth.getName();
         AppUser user = userService.getUserByUsername(username);
+        user.add(linkTo(methodOn(UserController.class).editUserInfo(null)).withRel("edit"));
+        user.add(linkTo(methodOn(UserController.class).getLoggedUser(auth)).withSelfRel());
         return ResponseEntity.ok(user);
     }
 
@@ -105,8 +113,10 @@ public class UserController {
         var addedUser = userService.saveUser(user);
         log.info("Created new user: " + addedUser.getUserInfo().getUsername());
 
-        // TODO - convert to proper status
-        return ResponseEntity.ok(getRequestFromUser(addedUser));
+        CreateUserRequest request = getRequestFromUser(addedUser);
+        Link toNewUser = linkTo(methodOn(UserController.class).getLoggedUser(null))
+                .withSelfRel();
+        return ResponseEntity.created(toNewUser.toUri()).body(request);
     }
 
     @PutMapping
@@ -119,22 +129,10 @@ public class UserController {
             userToEdit.getUserInfo().setEmail(req.getEmail());
         }
         AppUser editedUser = userService.saveUser(userToEdit);
-        return ResponseEntity.ok(getRequestFromUser(editedUser));
+        CreateUserRequest request = getRequestFromUser(editedUser);
+        request.add(linkTo(methodOn(UserController.class).getLoggedUser(null)).withSelfRel());
+        return ResponseEntity.ok(request);
     }
-
-    /*@GetMapping()
-    public ResponseEntity<AppUser> getUserByUsername(@RequestParam String username) {
-        var user = userService.getUserByUsername(username);
-        return ResponseEntity.ok(user);
-    }
-    */
-
-    /*
-    private AppUser getUserFromRequest(CreateUserRequest req) {
-        AppUser user = new AppUser();
-        BeanUtils.copyProperties(req, user);
-        return user;
-    }*/
 
     private CreateUserRequest getRequestFromUser(AppUser user) {
         CreateUserRequest dto = new CreateUserRequest();

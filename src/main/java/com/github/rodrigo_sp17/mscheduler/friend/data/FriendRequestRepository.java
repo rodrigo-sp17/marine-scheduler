@@ -17,4 +17,8 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
     @Query("select fr from FriendRequest fr where fr.source.userInfo.username = :username " +
             "or fr.target.userInfo.username = :username")
     List<FriendRequest> findRequestsContaining(String username);
+
+    @Query("select fr from FriendRequest fr where fr.source.userInfo.username = :username " +
+            "and fr.id = :id")
+    FriendRequest findByIdAndSourceUsername(Long id, String username);
 }
