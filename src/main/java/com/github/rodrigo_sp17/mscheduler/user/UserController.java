@@ -2,12 +2,24 @@ package com.github.rodrigo_sp17.mscheduler.user;
 
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
+import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
+import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/user")
@@ -18,38 +30,117 @@ public class UserController {
     @Autowired
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
+
+    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @GetMapping
+    public CollectionModel<String> getUsernames() {
+        List<String> usernames = userService.getUsernames();
+        Link selfLink = linkTo(methodOn(UserController.class).getUsernames()).withSelfRel();
+        return CollectionModel.of(usernames).add(selfLink);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AppUser> getLoggedUser(Authentication auth) {
+        String username = auth.getName();
+        AppUser user = userService.getUserByUsername(username);
+        user.add(linkTo(methodOn(UserController.class).editUserInfo(null)).withRel("edit"));
+        user.add(linkTo(methodOn(UserController.class).getLoggedUser(auth)).withSelfRel());
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/signup")
     public ResponseEntity<CreateUserRequest> signup(@RequestBody CreateUserRequest req) {
-        // TODO - password and username validation
-        AppUser user = getUserFromRequest(req);
-        var addedUser = userService.createUser(user);
-        log.info("Created new user");
-        return ResponseEntity.ok(getRequestFromUser(addedUser));
-    }
-
-    @GetMapping()
-    public ResponseEntity<AppUser> getUserByUsername(@RequestParam String userName) {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-
-    private AppUser getUserFromRequest(CreateUserRequest req) {
         AppUser user = new AppUser();
-        BeanUtils.copyProperties(req, user);
-        return user;
+        user.setUserInfo(new UserInfo());
+        String errorMsg = null;
+
+        // Name validation
+        String name = req.getName().trim();
+        if (name.isBlank() || name.isEmpty()
+                || !name.contains(" ") || !name.matches("^[a-zA-Z\\s]+$")) {
+            errorMsg = "Names must: " +
+                    "- Have at least first and last name, separated by space. " +
+                    "- Have only alphabetic letters. " +
+                    "- Not be empty ";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        user.getUserInfo().setName(name);
+
+        // Username validation
+        // Usernames are case-insensitive and unique
+        String username = req.getUsername()
+                .trim()
+                .toLowerCase();
+        if (username.length() < 6 || username.length() > 30) {
+            errorMsg = "Usernames must be between 6 to 30 characters long!";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        if (!userService.isUsernameAvailable(username)) {
+            errorMsg = "The username already exists. Choose another one!";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        user.getUserInfo().setUsername(username);
+
+        // Password validation
+        String password = req.getPassword();
+        if (!password.equals(req.getConfirmPassword())) {
+            errorMsg = "Confirmed password and password are not the same! " +
+                    "Please, check your values and try again.";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        if (password.length() < 8 || password.length() > 64) {
+            errorMsg = "Passwords must be between 8 and 64 characters long!";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        user.getUserInfo().setPassword(passwordEncoder.encode(password));
+
+        // Email validation
+        String email = req.getEmail()
+                .trim();    // Trimming to avoid common typos
+        // TODO - send email confirmation
+        if (email.isBlank() || email.isEmpty() || !email.matches("^.+[@].+$")) {
+            errorMsg = "Invalid email address!";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        user.getUserInfo().setEmail(email);
+
+        var addedUser = userService.saveUser(user);
+        log.info("Created new user: " + addedUser.getUserInfo().getUsername());
+
+        CreateUserRequest request = getRequestFromUser(addedUser);
+        Link toNewUser = linkTo(methodOn(UserController.class).getLoggedUser(null))
+                .withSelfRel();
+        return ResponseEntity.created(toNewUser.toUri()).body(request);
+    }
+
+    @PutMapping
+    public ResponseEntity<CreateUserRequest> editUserInfo(@RequestBody CreateUserRequest req) {
+        AppUser userToEdit = userService.getUserById(req.getUserId());
+        if (req.getName() != null) {
+            userToEdit.getUserInfo().setName(req.getName());
+        }
+        if (req.getEmail() != null) {
+            userToEdit.getUserInfo().setEmail(req.getEmail());
+        }
+        AppUser editedUser = userService.saveUser(userToEdit);
+        CreateUserRequest request = getRequestFromUser(editedUser);
+        request.add(linkTo(methodOn(UserController.class).getLoggedUser(null)).withSelfRel());
+        return ResponseEntity.ok(request);
     }
 
     private CreateUserRequest getRequestFromUser(AppUser user) {
         CreateUserRequest dto = new CreateUserRequest();
-        BeanUtils.copyProperties(user, dto);
+        dto.setUserId(user.getUserId());
+        dto.setUsername(user.getUserInfo().getUsername());
+        dto.setName(user.getUserInfo().getName());
+        dto.setEmail(user.getUserInfo().getEmail());
         return dto;
     }
-
-
 
 }

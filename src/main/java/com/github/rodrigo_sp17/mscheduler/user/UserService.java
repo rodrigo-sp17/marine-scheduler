@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -17,13 +19,29 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public List<String> getUsernames() {
+        return userRepository.findUsernames();
+    }
 
-    public AppUser getUser(Long userId) {
+
+    public AppUser getUserById(Long userId) {
         return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 
+    public boolean isUsernameAvailable(String username) {
+        return userRepository.findByUsername(username) == null;
+    }
+
+    public AppUser getUserByUsername(String username) {
+        var user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new UserNotFoundException("Could not find user " + username);
+        }
+        return user;
+    }
+
     @Transactional
-    public AppUser createUser(AppUser user) {
+    public AppUser saveUser(AppUser user) {
         return userRepository.save(user);
     }
 }

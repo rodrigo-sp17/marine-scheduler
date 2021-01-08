@@ -1,10 +1,10 @@
 package com.github.rodrigo_sp17.mscheduler.shift.data;
 
-import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDate;
 
-public class ShiftRequest {
+public class ShiftRequest extends RepresentationModel<ShiftRequest> {
 
     private Long shiftId;
 
@@ -17,11 +17,12 @@ public class ShiftRequest {
     private LocalDate unavailabilityEndDate;
 
     // Regular number of shift days to use for calculations
+    // Usage: if you only want to provide boarding date
     // i.e: 14, 28, 35, 56. 0 == null.
-    private Long cycleDays;
+    private Integer cycleDays;
 
     // Times to repeat the schedule
-    private Long repeat;
+    private Integer repeat;
 
 
     public ShiftRequest() {
@@ -68,19 +69,19 @@ public class ShiftRequest {
         this.unavailabilityEndDate = unavailabilityEndDate;
     }
 
-    public Long getCycleDays() {
+    public Integer getCycleDays() {
         return cycleDays;
     }
 
-    public void setCycleDays(Long cycleDays) {
+    public void setCycleDays(Integer cycleDays) {
         this.cycleDays = cycleDays;
     }
 
-    public Long getRepeat() {
+    public Integer getRepeat() {
         return repeat;
     }
 
-    public void setRepeat(Long repeat) {
+    public void setRepeat(Integer repeat) {
         this.repeat = repeat;
     }
 }
