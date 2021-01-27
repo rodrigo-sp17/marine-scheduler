@@ -57,6 +57,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         } catch (IOException e) {
             log.error("Could not read user from request");
             throw new AuthenticationServiceException(e.getMessage());
+        } catch (AuthenticationException a) {
+            log.info("Failed authentication attempt");
+            throw a;
         }
 
     }
