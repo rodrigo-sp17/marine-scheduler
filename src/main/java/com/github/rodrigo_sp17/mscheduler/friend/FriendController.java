@@ -5,9 +5,11 @@ import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -54,6 +56,11 @@ public class FriendController {
     @PostMapping("/request")
     public ResponseEntity<FriendRequest> requestFriendship(@RequestParam String username,
                                                            Authentication auth) {
+        // ensures user is not requesting to be friends with self
+        if (username.equals(auth.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A user cannot befriend himself!");
+        }
+
         var request = friendService.requestFriendship(username, auth.getName());
         Link toCreated = linkTo(methodOn(FriendController.class)
                 .getFriendRequestById(request.getId(), null)).withSelfRel();

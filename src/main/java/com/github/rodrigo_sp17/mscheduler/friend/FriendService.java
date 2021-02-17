@@ -73,6 +73,14 @@ public class FriendService {
             }
         }
 
+        // checks if there is a friendship already
+        if (user.getFriends().stream()
+                .map(u -> u.getUserInfo().getUsername())
+                .anyMatch(name -> name.equals(friendName))) {
+            throw new IllegalArgumentException("Cannot request friendship to a friend");
+        }
+
+
         // if not, build request, save and return
         AppUser friend = userService.getUserByUsername(friendName);
         var friendRequest = new FriendRequest();
