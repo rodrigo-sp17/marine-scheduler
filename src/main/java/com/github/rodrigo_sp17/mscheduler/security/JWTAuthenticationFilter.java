@@ -8,6 +8,8 @@ import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,18 +32,24 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     public static final Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
-    protected static final String SECRET = "6SYhdnZ6YCq1ChjLda0hv1zA9GiaUx6alkZtqbVp12+pbMZbYaD0F" +
-            "xiSHoaCzJ4hn6Zz3TgYn38rDOQDax5e1Q==";
+    private AuthenticationManager manager;
 
-    @Autowired
-    private final AuthenticationManager manager;
+    private ObjectMapper mapper;
 
-    private final ObjectMapper mapper;
+    private String jwtSecret;
 
-    public JWTAuthenticationFilter(AuthenticationManager manager) {
+    public JWTAuthenticationFilter(AuthenticationManager manager, String jwtSecret) {
         this.manager = manager;
         this.mapper = new ObjectMapper();
+        this.jwtSecret = jwtSecret;
     }
+
+/*
+    @Autowired
+    public void setSecret(@BString jwtSecret) {
+        this.jwtSecret = jwtSecret;
+    }
+*/
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
@@ -72,10 +80,11 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         User user = (User) authResult.getPrincipal();
         String jwtToken = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(Date.from(LocalDate.now().plusDays(10)
+                .withExpiresAt(Date.from(LocalDate.now()
+                        .plusDays(SecurityConstants.JWT_DAYS_TO_EXPIRE)
                         .atStartOfDay(ZoneId.systemDefault())
                         .toInstant()))
-                .sign(Algorithm.HMAC512(SECRET));
+                .sign(Algorithm.HMAC512(jwtSecret));
 
         response.addHeader("Authorization", "Bearer " + jwtToken);
     }
