@@ -1,6 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.friend;
 
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -35,26 +37,29 @@ public class FriendController {
     }
 
     @GetMapping("/request")
-    public ResponseEntity<CollectionModel<FriendRequest>> getFriendRequests(Authentication auth) {
+    public ResponseEntity<CollectionModel<FriendRequestDTO>> getFriendRequests(Authentication auth) {
         var requests = friendService.getFriendRequestsForUser(auth.getName());
+        var dtos = requests.stream().map(this::dtoFromRequest)
+                .collect(Collectors.toList());
         Link self = linkTo(methodOn(FriendController.class).getFriendRequests(null))
                 .withSelfRel();
-        return ResponseEntity.ok(CollectionModel.of(requests).add(self));
+        return ResponseEntity.ok(CollectionModel.of(dtos).add(self));
     }
 
     @GetMapping("/request/{id}")
-    public ResponseEntity<FriendRequest> getFriendRequestById(@PathVariable Long id,
+    public ResponseEntity<FriendRequestDTO> getFriendRequestById(@PathVariable Long id,
                                                               Authentication auth) {
     FriendRequest request = friendService.getRequestById(id, auth.getName());
-    request.add(linkTo(methodOn(FriendController.class)
+    var dto = dtoFromRequest(request);
+    dto.add(linkTo(methodOn(FriendController.class)
             .getFriendRequestById(id, null)).withSelfRel());
-    request.add(linkTo(methodOn(FriendController.class).getFriendRequests(null))
+    dto.add(linkTo(methodOn(FriendController.class).getFriendRequests(null))
             .withRel("allRequests"));
-    return ResponseEntity.ok(request);
+    return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/request")
-    public ResponseEntity<FriendRequest> requestFriendship(@RequestParam String username,
+    public ResponseEntity<FriendRequestDTO> requestFriendship(@RequestParam String username,
                                                            Authentication auth) {
         // ensures user is not requesting to be friends with self
         if (username.equals(auth.getName())) {
@@ -62,11 +67,12 @@ public class FriendController {
         }
 
         var request = friendService.requestFriendship(username, auth.getName());
+        var dto = dtoFromRequest(request);
         Link toCreated = linkTo(methodOn(FriendController.class)
                 .getFriendRequestById(request.getId(), null)).withSelfRel();
-        request.add(linkTo(methodOn(FriendController.class).getFriendRequests(null))
+        dto.add(linkTo(methodOn(FriendController.class).getFriendRequests(null))
                 .withRel("allRequests"));
-        return ResponseEntity.created(toCreated.toUri()).body(request);
+        return ResponseEntity.created(toCreated.toUri()).body(dto);
     }
 
     @PostMapping("/accept")
@@ -87,5 +93,17 @@ public class FriendController {
         Link allFriends = linkTo(methodOn(FriendController.class).getFriends(null))
                 .withRel("allFriends");
         return ResponseEntity.noContent().header("Link", allFriends.getHref()).build();
+    }
+
+    private FriendRequestDTO dtoFromRequest(FriendRequest req) {
+        var dto = new FriendRequestDTO();
+        dto.setId(req.getId());
+        dto.setTimestamp(req.getTimestamp());
+        dto.setSourceUsername(req.getSource().getUserInfo().getUsername());
+        dto.setSourceName(req.getSource().getUserInfo().getName());
+        dto.setTargetUsername(req.getTarget().getUserInfo().getUsername());
+        dto.setTargetName(req.getTarget().getUserInfo().getName());
+
+        return dto;
     }
 }

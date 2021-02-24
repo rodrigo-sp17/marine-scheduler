@@ -158,7 +158,7 @@ class MarinerSchedulerApplicationTests {
 				.param("username", "joaozinn"))
 				.andExpect(status().isCreated())
 				.andExpect(content().string(containsString("Joao Silva")))
-				.andExpect(content().string(containsString("joao_silva12@gmail.com")))
+				.andExpect(content().string(containsString("joaozinn")))
 				.andExpect(content().string(containsString("2021")));
 
 		// Checks if a new attempt returns the same request
