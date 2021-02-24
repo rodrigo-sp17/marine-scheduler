@@ -241,7 +241,7 @@ public class UserController {
                         "Atenciosamente, %n%n" +
                         "Equipe Agenda Marítima",
                 user.getUserInfo().getName(),
-                "http://localhost:8080/api/user/changePassword?reset=" + resetToken
+                "http://localhost:3000/changePassword?reset=" + resetToken
         );
 
         var email = new SimpleMailMessage();
