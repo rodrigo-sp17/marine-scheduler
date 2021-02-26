@@ -219,11 +219,7 @@ public class UserControllerTest {
                 .param("user", user.getUserInfo().getUsername()))
                 .andExpect(status().isOk());
 
-        mvc.perform(post(new URI("/api/user/recover"))
-                .param("user", user.getUserInfo().getEmail()))
-                .andExpect(status().isOk());
-
-        verify(mailSender, times(2)).send(any(SimpleMailMessage.class));
+        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
     }
 
     @Test

@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -97,7 +98,7 @@ public class UserController {
         }
         if (!userService.isUsernameAvailable(username)) {
             errorMsg = "The username already exists. Choose another one!";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMsg);
         }
         user.getUserInfo().setUsername(username);
 
@@ -156,11 +157,7 @@ public class UserController {
         try {
             appUser = userService.getUserByUsername(user);
         } catch (UserNotFoundException e) {
-            try {
-                appUser = userService.getUserByEmail(user);
-            } catch (UserNotFoundException d) {
-                log.info("Failed recovery attempt for user: " + user);
-            }
+            log.info("Failed recovery attempt for user: " + user);
         }
 
         if (appUser != null) {
@@ -241,7 +238,10 @@ public class UserController {
                         "Atenciosamente, %n%n" +
                         "Equipe Agenda Marítima",
                 user.getUserInfo().getName(),
-                "http://localhost:3000/changePassword?reset=" + resetToken
+                ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/changePassword")
+                        .queryParam("reset", resetToken)
+                        .toUriString()
         );
 
         var email = new SimpleMailMessage();
