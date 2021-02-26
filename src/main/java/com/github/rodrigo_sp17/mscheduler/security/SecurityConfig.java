@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,22 +33,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-                .antMatchers(HttpMethod.POST,
+                .antMatchers(
+                        HttpMethod.POST,
                         "/api/user/signup",
                         "/api/user/recover",
                         "/api/user/changePassword",
-                        "/api/user/resetPassword").permitAll()
-                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
-                    .permitAll()
-                .anyRequest().authenticated()
+                        "/api/user/resetPassword"
+                ).permitAll()
+                .antMatchers(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                ).permitAll()
+                .antMatchers(
+                        "/",
+                        "/signup",
+                        "/login",
+                        "/changePassword",
+                        "/**/*.{js,html,css}"
+                ).permitAll()
+                .anyRequest()
+                .authenticated()
+
             .and()
             .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtSecret))
             .addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtSecret))
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and().csrf().disable();
+                .and()
+                .csrf().disable();
 
-                // TODO - cors?
+                // TODO - cors and csrf
     }
 
     @Override
@@ -64,8 +78,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // DelegatingPasswordEncoder is used to allow multiple algorithms and be ready to change
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
-
-
 /*    @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

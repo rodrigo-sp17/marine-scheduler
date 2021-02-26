@@ -44,13 +44,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         this.jwtSecret = jwtSecret;
     }
 
-/*
-    @Autowired
-    public void setSecret(@BString jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-*/
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response)
@@ -66,7 +59,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             log.error("Could not read user from request");
             throw new AuthenticationServiceException(e.getMessage());
         } catch (AuthenticationException a) {
-            log.info("Failed authentication attempt");
+            log.info("Failed authentication attempt: " + a);
             throw a;
         }
 
