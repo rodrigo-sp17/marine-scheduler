@@ -1,10 +1,32 @@
-# Mariner Scheduler
-Mariner Scheduler is a RESTful API that allows mariners and offshore workers to add their friends on the field and check if they will be available at a specific date.
+![alt text](src/main/resources/build/logo192.png)
+# Marine Scheduler (Agenda Marítima)
+Marine Scheduler is website that allows mariners and offshore workers to add their friends on the field and check if they will be available at a specific date.
 
-The inspiration for this project comes from the frustration of never knowing when your seafarer friends will be available for events, having to constantly message them to get this information. With the API, messaging is no longer necessary: the seafarer will fill his or her shift on the app and his friends will have access to those shifts.
+![Badge](https://img.shields.io/github/license/rodrigo-sp17/mscheduler)
+![Badge](https://img.shields.io/github/last-commit/rodrigo-sp17/mscheduler)
+
+## Motivation
+The inspiration for this project comes from the frustration of never knowing when your seafarer friends will be available for events, having to constantly message them to get this information. With the website, messaging is no longer necessary: the seafarer will fill his or her shift on the app and his friends will have access to those shifts.
 
 ## Usage
-API usage is documented with Swagger at https://marinescheduler.herokuapp.com/swagger-ui.html
+Website is available at https://agendamaritima.herokuapp.com
+
+API usage is documented with Swagger at https://agendamaritima.herokuapp.com/swagger-ui.html
+
+## Features
+- [x] Checking available users
+- [x] Requesting, accepting and deleting friendships
+- [x] Shift calendar
+- [ ] Events
+- [ ] Push notifications
+- [ ] Responsiveness
+
+## Tech Stack
+- [React](https://reactjs.org/)
+- [Material-UI](https://material-ui.com/)
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Formik + Yup](https://formik.org/)
+- [PostgreSQL](https://www.postgresql.org/)
 
 ## License
 [GPL-3.0](https://choosealicense.com/licenses/gpl-3.0)
