@@ -13,7 +13,9 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,6 +42,9 @@ class MarinerSchedulerApplicationTests {
 
 	@Autowired
 	private MockMvc mvc;
+
+	@MockBean
+	private JavaMailSender mailSender;
 
 	@Test
 	void contextLoads() {
@@ -158,7 +163,7 @@ class MarinerSchedulerApplicationTests {
 				.param("username", "joaozinn"))
 				.andExpect(status().isCreated())
 				.andExpect(content().string(containsString("Joao Silva")))
-				.andExpect(content().string(containsString("joao_silva12@gmail.com")))
+				.andExpect(content().string(containsString("joaozinn")))
 				.andExpect(content().string(containsString("2021")));
 
 		// Checks if a new attempt returns the same request

@@ -86,6 +86,31 @@ public class FriendControllerTest {
 
     @Test
     @WithMockUser(username = "john@doe123")
+    public void testRequestFriendshipAlreadyFriends() throws Exception {
+        var friendRequests = TestData.getFriendRequest();
+
+        when(friendService.requestFriendship(
+                eq("jane_girl18"),
+                eq("john@doe123")))
+                .thenReturn(friendRequests.get(0));
+
+        mvc.perform(post(new URI("/api/friend/request"))
+                .param("username", "jane_girl18"))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(containsString("John Doe")))
+                .andExpect(content().string(containsString("Jane Doe")));
+    }
+
+    @Test
+    @WithMockUser(username = "john@doe123")
+    public void testRequestFriendshipWithSelf() throws Exception {
+        mvc.perform(post(new URI("/api/friend/request"))
+                .param("username", "john@doe123"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "john@doe123")
     public void testAcceptFriendship() throws Exception {
         var users = getUsers();
 
