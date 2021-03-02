@@ -107,21 +107,21 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Names must:")));
+                .andExpect(header().string("error", containsString("Names must:")));
 
         jsonRequest.put("name", "Rodrigo");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Names must:")));
+                .andExpect(header().string("error", containsString("Names must:")));
 
         jsonRequest.put("name", "Rodrigo1 Rodrigues");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Names must:")));
+                .andExpect(header().string("error", containsString("Names must:")));
 
         jsonRequest.put("name", "John Doe");
 
@@ -132,7 +132,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Usernames must be")));
+                .andExpect(header().string("error", containsString("Usernames must be")));
 
         // Test case-insensitive and wrong space
         when(userService.isUsernameAvailable(eq("john@doe123"))).thenReturn(false);
@@ -140,8 +140,8 @@ public class UserControllerTest {
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("username already")));
+                .andExpect(status().isConflict())
+                .andExpect(header().string("error", containsString("username already")));
 
         jsonRequest.put("username", "newUser");
 
@@ -152,7 +152,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Confirmed password")));
+                .andExpect(header().string("error", containsString("Confirmed password")));
 
         // Test too short
         jsonRequest.put("password", "short");
@@ -161,7 +161,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Password does not")));
+                .andExpect(header().string("error", containsString("Password does not")));
 
         jsonRequest.put("password", "short1234");
         jsonRequest.put("confirmPassword", "short1234");
@@ -172,13 +172,13 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Invalid email")));
+                .andExpect(header().string("error", containsString("Invalid email")));
         jsonRequest.put("email", "");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Invalid email")));
+                .andExpect(header().string("error", containsString("Invalid email")));
     }
 
     @Test
@@ -289,7 +289,7 @@ public class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.toString()))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("requirements")));
+                .andExpect(header().string("error", containsString("requirements")));
         verify(userService, times(1)).saveUser(any());
     }
 
