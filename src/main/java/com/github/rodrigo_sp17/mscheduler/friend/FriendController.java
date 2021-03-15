@@ -3,6 +3,7 @@ package com.github.rodrigo_sp17.mscheduler.friend;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
+import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
@@ -66,7 +67,12 @@ public class FriendController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A user cannot befriend himself!");
         }
 
-        var request = friendService.requestFriendship(username, auth.getName());
+        FriendRequest request = null;
+        try {
+            request = friendService.requestFriendship(username, auth.getName());
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
         var dto = dtoFromRequest(request);
         Link toCreated = linkTo(methodOn(FriendController.class)
                 .getFriendRequestById(request.getId(), null)).withSelfRel();
