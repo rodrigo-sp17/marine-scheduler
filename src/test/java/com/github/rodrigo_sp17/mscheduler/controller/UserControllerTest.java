@@ -19,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -33,8 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -47,6 +47,9 @@ public class UserControllerTest {
 
     @MockBean
     private JavaMailSender mailSender;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private MockMvc mvc;
@@ -199,6 +202,26 @@ public class UserControllerTest {
                 .content(request.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("newmail@hotmail.com")));
+    }
+
+    @Test
+    @WithMockUser(username = "john@doe123")
+    public void testDeleteUser() throws Exception {
+        AppUser user = TestData.getUsers().get(0);
+
+        when(userService.getUserByUsername(any())).thenReturn(user);
+        when(passwordEncoder.matches(eq("testPassword"), eq("testPassword")))
+                .thenReturn(true);
+        when(userService.deleteUser(any())).thenReturn(true);
+
+        mvc.perform(delete(new URI("/api/user/delete"))
+                .header("password", "testPassword1"))
+                .andExpect(status().isForbidden());
+
+        // Testing right password
+        mvc.perform(delete(new URI("/api/user/delete"))
+                .header("password", "testPassword"))
+                .andExpect(status().isNoContent());
     }
 
     @Test

@@ -2,8 +2,10 @@ package com.github.rodrigo_sp17.mscheduler.friend.data;
 
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,4 +23,10 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
     @Query("select fr from FriendRequest fr where fr.source.userInfo.username = :username " +
             "and fr.id = :id")
     FriendRequest findByIdAndSourceUsername(Long id, String username);
+
+    @Transactional
+    @Modifying
+    @Query("delete from FriendRequest fr where fr.source.userId = :id " +
+            "or fr.target.userId = :id")
+    void deleteAllById(Long id);
 }

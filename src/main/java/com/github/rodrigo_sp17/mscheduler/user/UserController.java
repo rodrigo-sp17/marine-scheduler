@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -147,6 +148,24 @@ public class UserController {
         CreateUserRequest request = getRequestFromUser(editedUser);
         request.add(linkTo(methodOn(UserController.class).getLoggedUser(null)).withSelfRel());
         return ResponseEntity.ok(request);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<CreateUserRequest> deleteUser(Authentication auth,
+                                                        @RequestHeader String password) {
+        var userToDelete = userService.getUserByUsername(auth.getName());
+        var storedPassword = userToDelete.getUserInfo().getPassword();
+
+        if (!passwordEncoder.matches(password, storedPassword)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account deletion unauthorized");
+        }
+
+        if (userService.deleteUser(userToDelete)) {
+            log.info("Deleted user: " + userToDelete.getUserInfo().getUsername());
+            return ResponseEntity.noContent().build();
+        }
+
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Deletion failed");
     }
 
     @PostMapping("/recover")

@@ -2,6 +2,7 @@ package com.github.rodrigo_sp17.mscheduler.service;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.github.rodrigo_sp17.mscheduler.TestData;
+import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestRepository;
 import com.github.rodrigo_sp17.mscheduler.security.SecurityConstants;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserRepository;
@@ -18,7 +19,10 @@ public class UserServiceTest {
 
     private UserRepository userRepository = Mockito.mock(UserRepository.class);
 
-    private UserService userService = new UserService(userRepository, "testsecret");
+    private FriendRequestRepository requestRepository = Mockito.mock(FriendRequestRepository.class);
+
+    private UserService userService = new UserService(userRepository,
+            requestRepository, "testsecret");
 
     @Test
     public void testEncodeDecodeRecoveryToken() {

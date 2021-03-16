@@ -19,10 +19,10 @@ public class AppUser extends RepresentationModel<AppUser> {
     @Embedded
     private UserInfo userInfo;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.DETACH})
     @JsonIgnore
     private List<AppUser> friends;
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
     private List<Shift> shifts;
 }
