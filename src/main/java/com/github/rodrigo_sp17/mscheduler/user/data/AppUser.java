@@ -1,6 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.user.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.rodrigo_sp17.mscheduler.event.Event;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
@@ -25,4 +26,7 @@ public class AppUser extends RepresentationModel<AppUser> {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
     private List<Shift> shifts;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    private List<Event> ownedEvents;
 }
