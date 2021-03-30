@@ -7,8 +7,12 @@ INSERT INTO APP_USER(user_id, email, name, password, username) VALUES (8, 'fifth
 INSERT INTO APP_USER_FRIENDS(app_user_user_id, friends_user_id) VALUES (6, 7);
 INSERT INTO APP_USER_FRIENDS(app_user_user_id, friends_user_id) VALUES (7, 6);
 
-INSERT INTO EVENT(id, title, all_day, start, end, owner_user_id) VALUES (1, 'Third Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
-INSERT INTO EVENT(id, title, all_day, start, end, owner_user_id) VALUES (3, 'Second Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
-INSERT INTO EVENT(id, title, all_day, start, end, owner_user_id) VALUES (4, 'First Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
-INSERT INTO EVENT(id, title, all_day, start, end, owner_user_id) VALUES (2, 'Fifth Event', true, '2025-02-03T12:00:00', '2025-02-04T00:00:00', 8);
-INSERT INTO EVENT_INVITED(event_id, invited_user_id) VALUES(2, 6)
+INSERT INTO EVENT(id, title, all_day, start, ending, owner_user_id) VALUES (15, 'Third Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
+INSERT INTO EVENT(id, title, all_day, start, ending, owner_user_id) VALUES (3, 'Second Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
+INSERT INTO EVENT(id, title, all_day, start, ending, owner_user_id) VALUES (4, 'First Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
+INSERT INTO EVENT(id, title, all_day, start, ending, owner_user_id) VALUES (5, 'Zero Event', false, '2023-02-03T12:00:00', '2023-02-04T23:00:00', 6);
+INSERT INTO EVENT(id, title, all_day, start, ending, owner_user_id) VALUES (2, 'Fifth Event', true, '2025-02-03T12:00:00', '2025-02-04T00:00:00', 8);
+
+INSERT INTO INVITATION(id, is_confirmed, event_id, invited_user_id) VALUES (1, false, 2, 6);
+INSERT INTO INVITATION(id, is_confirmed, event_id, invited_user_id) VALUES (4, false, 3, 8);
+

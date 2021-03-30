@@ -1,4 +1,4 @@
-package com.github.rodrigo_sp17.mscheduler.event;
+package com.github.rodrigo_sp17.mscheduler.event.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +15,7 @@ import java.util.Set;
 public class EventDTO extends RepresentationModel<EventDTO> {
     private Long id;
     @NotBlank
-    @Max(60)
+    @Size(min = 1, max = 60)
     private String title;
     @FutureOrPresent
     private LocalDateTime start;

@@ -1,14 +1,14 @@
-package com.github.rodrigo_sp17.mscheduler.event;
+package com.github.rodrigo_sp17.mscheduler.event.data;
 
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import lombok.Data;
-import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
+@NamedEntityGraph(name = "Event.detail",
+attributeNodes = @NamedAttributeNode("owner"))
 @Data
 public class Event {
     @Id
@@ -16,13 +16,9 @@ public class Event {
     private Long id;
     private String title;
     private LocalDateTime start;
-    private LocalDateTime end;
+    private LocalDateTime ending;
     private boolean allDay;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private AppUser owner;
-    @ManyToMany
-    private List<AppUser> invited;
-    @ManyToMany
-    private List<AppUser> confirmed;
  }
