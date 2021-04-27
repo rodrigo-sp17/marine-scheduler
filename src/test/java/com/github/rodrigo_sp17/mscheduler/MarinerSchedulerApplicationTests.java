@@ -16,6 +16,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -45,6 +46,9 @@ class MarinerSchedulerApplicationTests {
 
 	@MockBean
 	private JavaMailSender mailSender;
+
+	@MockBean
+	private ClientRegistrationRepository clientRegistrationRepository;
 
 	@Test
 	void contextLoads() {

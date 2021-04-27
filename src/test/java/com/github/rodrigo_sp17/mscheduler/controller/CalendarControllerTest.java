@@ -25,16 +25,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = CalendarController.class)
-public class CalendarControllerTest {
-
-    @Autowired
-    private MockMvc mvc;
+public class CalendarControllerTest extends AbstractControllerTest {
 
     @MockBean
     private CalendarService calendarService;
-
-    @MockBean
-    private UserDetailsServiceImpl userDetailsService;
 
     @Test
     @WithMockUser("john@doe123")
@@ -51,6 +45,5 @@ public class CalendarControllerTest {
                 .andExpect(content().string(containsString("Jane Doe")))
                 .andExpect(content().string(containsString("Joao Silva")));
     }
-
 
 }

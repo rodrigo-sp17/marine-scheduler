@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(value = UserController.class)
 @AutoConfigureJsonTesters
-public class UserControllerTest {
+public class UserControllerTest extends AbstractControllerTest {
 
     @MockBean
     private UserService userService;
@@ -46,12 +46,6 @@ public class UserControllerTest {
 
     @MockBean
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private MockMvc mvc;
-
-    @MockBean
-    private UserDetailsServiceImpl userDetailsService;
 
     @Test
     public void testCreateUser() throws Exception {
