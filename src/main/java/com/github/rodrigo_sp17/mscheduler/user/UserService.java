@@ -15,16 +15,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final FriendRequestRepository requestRepository;
-
     private final String jwtSecret;
 
     @Autowired
@@ -63,6 +64,16 @@ public class UserService {
             throw new UserNotFoundException("Could not find user " + email);
         }
         return user;
+    }
+
+    public String encodeToken(String username) {
+        return JWT.create()
+                .withSubject(username)
+                .withExpiresAt(Date.from(LocalDate.now()
+                        .plusDays(SecurityConstants.JWT_DAYS_TO_EXPIRE)
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant()))
+                .sign(Algorithm.HMAC512(jwtSecret));
     }
 
     public String createRecoveryToken(AppUser user, LocalDateTime time) {

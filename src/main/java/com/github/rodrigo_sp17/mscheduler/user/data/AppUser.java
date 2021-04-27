@@ -1,6 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.user.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.rodrigo_sp17.mscheduler.auth.SocialCredential;
 import com.github.rodrigo_sp17.mscheduler.event.data.Event;
 import com.github.rodrigo_sp17.mscheduler.event.data.Invitation;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
@@ -37,4 +38,7 @@ public class AppUser extends RepresentationModel<AppUser> {
     @ToString.Exclude
     @OneToMany(mappedBy = "invited")
     private List<Invitation> invitations;
+
+    @OneToMany(mappedBy = "socialUser", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    private List<SocialCredential> credentials;
 }
