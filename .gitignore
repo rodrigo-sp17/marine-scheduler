@@ -3,6 +3,7 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+src/main/java/com/github/rodrigo_sp17/mscheduler/debug/
 
 ### STS ###
 .apt_generated

@@ -1,7 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler;
 
 import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
-import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
+import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.MethodOrderer;
@@ -249,7 +249,7 @@ class MarinerSchedulerApplicationTests {
 	}
 
 	private JSONObject getUserRequest() {
-		CreateUserRequest user = new CreateUserRequest();
+		UserDTO user = new UserDTO();
 		user.setName("John Doe");
 		user.setEmail("john_doe@gmail.com");
 		user.setUsername("john@Doe123");

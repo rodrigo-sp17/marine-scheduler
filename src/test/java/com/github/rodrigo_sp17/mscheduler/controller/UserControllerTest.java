@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -100,21 +101,21 @@ public class UserControllerTest extends AbstractControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Names must:")));
+                .andExpect(content().string(containsString("Names")));
 
         jsonRequest.put("name", "Rodrigo");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Names must:")));
+                .andExpect(content().string(containsString("Names must")));
 
         jsonRequest.put("name", "Rodrigo1 Rodrigues");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Names must:")));
+                .andExpect(content().string(containsString("Names must")));
 
         jsonRequest.put("name", "John Doe");
 
@@ -154,7 +155,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Password does not")));
+                .andExpect(content().string(containsString("Passwords must ")));
 
         jsonRequest.put("password", "short1234");
         jsonRequest.put("confirmPassword", "short1234");
@@ -171,7 +172,54 @@ public class UserControllerTest extends AbstractControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Invalid email")));
+                .andExpect(content().string(containsString("mandatory")));
+    }
+
+    @Test
+    public void testSocialSignupValidation() throws Exception {
+        when(userService.getUserByUsername("john@doe123")).thenReturn(TestData.getUsers().get(0));
+        when(userService.saveUser(any())).thenReturn(TestData.getUsers().get(0));
+        when(userService.isUsernameAvailable(any())).thenReturn(false);
+
+        JSONObject jsonRequest = new JSONObject();
+        jsonRequest.put("name", "");
+        jsonRequest.put("username", "john@doe123");
+        jsonRequest.put("password", "any password");
+        jsonRequest.put("confirmPassword", "not matching");
+        jsonRequest.put("email", "notemail");
+
+        mvc.perform(post(new URI("/api/user/socialSignup"))
+                .content(jsonRequest.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Names")))
+                .andExpect(content().string(not(containsString("username"))))
+                .andExpect(content().string(containsString("email")));
+
+        jsonRequest.put("name", "John Doe");
+        jsonRequest.put("email", "valid@email.com");
+
+        mvc.perform(post(new URI("/api/user/socialSignup"))
+                .content(jsonRequest.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("social")));
+
+        jsonRequest.put("socialId", "anysocial");
+        jsonRequest.put("registrationId", "regid");
+
+        mvc.perform(post(new URI("/api/user/socialSignup"))
+                .content(jsonRequest.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(content().string(containsString("username")));
+
+        when(userService.isUsernameAvailable(any())).thenReturn(true);
+        mvc.perform(post(new URI("/api/user/socialSignup"))
+                .content(jsonRequest.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Authorization"));
     }
 
     @Test
@@ -302,7 +350,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.toString()))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("requirements")));
+                .andExpect(content().string(containsString("Passwords")));
         verify(userService, times(1)).saveUser(any());
     }
 

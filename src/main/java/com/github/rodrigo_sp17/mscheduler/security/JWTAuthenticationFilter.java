@@ -3,7 +3,7 @@ package com.github.rodrigo_sp17.mscheduler.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
+import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,7 +44,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                                 HttpServletResponse response)
             throws AuthenticationException {
         try {
-            CreateUserRequest user = mapper.readValue(request.getReader(), CreateUserRequest.class);
+            UserDTO user = mapper.readValue(request.getReader(), UserDTO.class);
             var token = new UsernamePasswordAuthenticationToken(
                     user.getUsername(), user.getPassword());
 

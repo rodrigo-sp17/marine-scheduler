@@ -3,9 +3,10 @@ package com.github.rodrigo_sp17.mscheduler.user;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.rodrigo_sp17.mscheduler.auth.SocialCredential;
+import com.github.rodrigo_sp17.mscheduler.auth.SocialUserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
-import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
-import com.github.rodrigo_sp17.mscheduler.user.data.PasswordRequest;
+import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
+import com.github.rodrigo_sp17.mscheduler.user.data.PasswordRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -57,32 +59,19 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<CreateUserRequest> signup(@RequestBody CreateUserRequest req) {
+    public ResponseEntity<UserDTO> signup(@Valid @RequestBody UserDTO req) {
         AppUser user = new AppUser();
         user.setUserInfo(new UserInfo());
         String errorMsg = null;
 
         // Name validation
         String name = req.getName().trim();
-        if (name.isBlank() || name.isEmpty()
-                || !name.contains(" ") || !name.matches("^[a-zA-Z\\s]+$")) {
-            errorMsg = "Names must: " +
-                    "- Have at least first and last name, separated by space. " +
-                    "- Have only alphabetic letters. " +
-                    "- Not be empty ";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
         user.getUserInfo().setName(name);
 
-        // Username validation
         // Usernames are case-insensitive and unique
         String username = req.getUsername()
                 .trim()
                 .toLowerCase();
-        if (username.length() < 6 || username.length() > 30) {
-            errorMsg = "Usernames must be between 6 to 30 characters long!";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
         if (!userService.isUsernameAvailable(username)) {
             errorMsg = "The username already exists. Choose another one!";
             throw new ResponseStatusException(HttpStatus.CONFLICT, errorMsg);
@@ -96,62 +85,40 @@ public class UserController {
                     "Please, check your values and try again.";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
-        if (!isValidPassword(password)) {
-            errorMsg = "Password does not meet requirements!";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
         user.getUserInfo().setPassword(passwordEncoder.encode(password));
 
         // Email validation
-        String email = req.getEmail()
-                .trim();    // Trimming to avoid common typos
+        String email = req.getEmail().trim();    // Trimming to avoid common typos
         // TODO - send email confirmation
-        if (email.isBlank() || email.isEmpty() || !email.matches("^.+[@].+$")) {
-            errorMsg = "Invalid email address!";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
         user.getUserInfo().setEmail(email);
 
         var addedUser = userService.saveUser(user);
         log.info("Created new user: " + addedUser.getUserInfo().getUsername());
 
-        CreateUserRequest request = getRequestFromUser(addedUser);
+        UserDTO request = getDTOFromUser(addedUser);
         Link toNewUser = linkTo(methodOn(UserController.class).getLoggedUser(null))
                 .withSelfRel();
         return ResponseEntity.created(toNewUser.toUri()).body(request);
     }
 
     @PostMapping("/socialSignup")
-    public ResponseEntity<CreateUserRequest> socialSignup(@RequestBody CreateUserRequest req) {
+    public ResponseEntity<UserDTO> socialSignup(@Valid @RequestBody SocialUserDTO req)
+             {
         AppUser user = new AppUser();
         user.setUserInfo(new UserInfo());
-        String errorMsg = null;
-
-        String name = req.getName().trim();
-        errorMsg = validateName(name);
-        if (errorMsg != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
-        user.getUserInfo().setName(name);
-
-        String email = req.getEmail().trim();
-        errorMsg = validateEmail(email);
-        if (errorMsg != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
-        user.getUserInfo().setEmail(email);
 
         String username = req.getUsername()
                 .trim()
                 .toLowerCase();
-        errorMsg = validateUsername(username);
-        if (errorMsg != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
         if (!userService.isUsernameAvailable(username)) {
-            errorMsg = "The username already exists. Choose another one";
-            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMsg);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "The username already exists. Choose another one");
         }
+        String name = req.getName().trim();
+        String email = req.getEmail().trim();
+
+        user.getUserInfo().setName(name);
+        user.getUserInfo().setEmail(email);
         user.getUserInfo().setUsername(username);
 
         var credential = new SocialCredential();
@@ -167,7 +134,7 @@ public class UserController {
         log.info("Created new user: " + addedUsername);
         String token = userService.encodeToken(addedUsername);
 
-        CreateUserRequest request = getRequestFromUser(addedUser);
+        UserDTO request = getDTOFromUser(addedUser);
         Link toNewUser = linkTo(methodOn(UserController.class).getLoggedUser(null))
                 .withSelfRel();
 
@@ -178,7 +145,7 @@ public class UserController {
 
 
     @PutMapping
-    public ResponseEntity<CreateUserRequest> editUserInfo(@RequestBody CreateUserRequest req) {
+    public ResponseEntity<UserDTO> editUserInfo(@RequestBody UserDTO req) {
         AppUser userToEdit = userService.getUserById(req.getUserId());
         if (req.getName() != null) {
             userToEdit.getUserInfo().setName(req.getName());
@@ -187,13 +154,13 @@ public class UserController {
             userToEdit.getUserInfo().setEmail(req.getEmail());
         }
         AppUser editedUser = userService.saveUser(userToEdit);
-        CreateUserRequest request = getRequestFromUser(editedUser);
+        UserDTO request = getDTOFromUser(editedUser);
         request.add(linkTo(methodOn(UserController.class).getLoggedUser(null)).withSelfRel());
         return ResponseEntity.ok(request);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<CreateUserRequest> deleteUser(Authentication auth,
+    public ResponseEntity<UserDTO> deleteUser(Authentication auth,
                                                         @RequestHeader String password) {
         var userToDelete = userService.getUserByUsername(auth.getName());
         var storedPassword = userToDelete.getUserInfo().getPassword();
@@ -244,7 +211,7 @@ public class UserController {
 
     @PostMapping("/resetPassword")
     public ResponseEntity<String> resetPassword(@RequestHeader("reset") String token,
-                                                @RequestBody PasswordRequest passwordRequest) {
+                                                @Valid @RequestBody PasswordRequestDTO passwordRequest) {
         String errorMsg;
 
         // Verifies token
@@ -253,18 +220,13 @@ public class UserController {
             decodedToken = userService
                     .decodeRecoveryToken(passwordRequest.getUsername(), token);
         } catch (JWTVerificationException e) {
-            errorMsg = "You are not authorized to perform resets.";
+            errorMsg = "You are not authorized to perform resets";
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMsg);
         }
 
         // Verifies passwords
         if (!passwordRequest.getPassword().equals(passwordRequest.getConfirmPassword())) {
-            errorMsg = "Passwords do not match.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
-
-        if (!isValidPassword(passwordRequest.getPassword())) {
-            errorMsg = "Password does not meet requirements!";
+            errorMsg = "Passwords do not match";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
 
@@ -280,8 +242,8 @@ public class UserController {
 
 
     // Helper methods
-    private CreateUserRequest getRequestFromUser(AppUser user) {
-        CreateUserRequest dto = new CreateUserRequest();
+    private UserDTO getDTOFromUser(AppUser user) {
+        UserDTO dto = new UserDTO();
         dto.setUserId(user.getUserId());
         dto.setUsername(user.getUserInfo().getUsername());
         dto.setName(user.getUserInfo().getName());
@@ -311,60 +273,6 @@ public class UserController {
         email.setTo(user.getUserInfo().getEmail());
 
         return email;
-    }
-
-    // TODO - new validation schema (Hibernate vs Flutter)
-    private boolean isValidPassword(String password) {
-        if (password.length() < 8 || password.length() > 64) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Validates the name according to pre-requisites
-     * @param name the trimmed name, to validate
-     * @return null, if valid, or a String error message if invalid
-     */
-    private String validateName(String name) {
-        if (name.isBlank() || name.isEmpty()) {
-            return "Name is mandatory";
-        }
-        if (!name.matches("^[a-zA-Z]+\\s[a-zA-Z]+$")) {
-            return "Names must have only alphabetical letters" +
-                    " and contain first name and last name separated by space";
-        }
-        return null;
-    }
-
-    /**
-     * Validates the username according to pre-requisites
-     * @param username the sanitized username (no spaces, all lower-case) to validate
-     * @return null, if valid, or a String error message if invalid
-     */
-    private String validateUsername(String username) {
-        if (username.matches("[A-Z ]+")) {
-            return "Username must not have spaces or capital letters";
-        }
-        if (username.length() < 6 || username.length() > 30) {
-            return "Usernames must be between 6 to 30 characters long";
-        }
-        return null;
-    }
-
-    /**
-     * Validates the email according to pre-requisites
-     * @param email the trimmed email to validate
-     * @return null, if valid, or a String error message if invalid
-     */
-    private String validateEmail(String email) {
-        if (email.isBlank() || email.isEmpty()) {
-            return "Email is mandatory";
-        }
-        if (!email.matches("^.+[@].+$")) {
-            return "Invalid email address";
-        }
-        return null;
     }
 
 }
