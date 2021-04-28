@@ -25,17 +25,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = FriendController.class)
-public class FriendControllerTest {
-
-    @Autowired
-    private MockMvc mvc;
+public class FriendControllerTest extends AbstractControllerTest {
 
     @MockBean
     private FriendService friendService;
-
-    @MockBean
-    private UserDetailsServiceImpl userDetailsService;
-
 
     @Test
     @WithMockUser(username = "john@doe123")

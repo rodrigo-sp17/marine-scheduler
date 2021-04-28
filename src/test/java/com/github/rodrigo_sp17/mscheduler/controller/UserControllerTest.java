@@ -19,28 +19,24 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest(value = UserController.class)
 @AutoConfigureJsonTesters
-public class UserControllerTest {
+public class UserControllerTest extends AbstractControllerTest {
 
     @MockBean
     private UserService userService;
@@ -48,11 +44,8 @@ public class UserControllerTest {
     @MockBean
     private JavaMailSender mailSender;
 
-    @Autowired
-    private MockMvc mvc;
-
     @MockBean
-    private UserDetailsServiceImpl userDetailsService;
+    private PasswordEncoder passwordEncoder;
 
     @Test
     public void testCreateUser() throws Exception {
@@ -107,21 +100,21 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Names must:")));
+                .andExpect(content().string(containsString("Names must:")));
 
         jsonRequest.put("name", "Rodrigo");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Names must:")));
+                .andExpect(content().string(containsString("Names must:")));
 
         jsonRequest.put("name", "Rodrigo1 Rodrigues");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Names must:")));
+                .andExpect(content().string(containsString("Names must:")));
 
         jsonRequest.put("name", "John Doe");
 
@@ -132,7 +125,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Usernames must be")));
+                .andExpect(content().string(containsString("Usernames must be")));
 
         // Test case-insensitive and wrong space
         when(userService.isUsernameAvailable(eq("john@doe123"))).thenReturn(false);
@@ -141,7 +134,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andExpect(header().string("error", containsString("username already")));
+                .andExpect(content().string(containsString("username already")));
 
         jsonRequest.put("username", "newUser");
 
@@ -152,7 +145,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Confirmed password")));
+                .andExpect(content().string(containsString("Confirmed password")));
 
         // Test too short
         jsonRequest.put("password", "short");
@@ -161,7 +154,7 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Password does not")));
+                .andExpect(content().string(containsString("Password does not")));
 
         jsonRequest.put("password", "short1234");
         jsonRequest.put("confirmPassword", "short1234");
@@ -172,13 +165,13 @@ public class UserControllerTest {
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Invalid email")));
+                .andExpect(content().string(containsString("Invalid email")));
         jsonRequest.put("email", "");
         mvc.perform(post(new URI("/api/user/signup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("Invalid email")));
+                .andExpect(content().string(containsString("Invalid email")));
     }
 
     @Test
@@ -199,6 +192,26 @@ public class UserControllerTest {
                 .content(request.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("newmail@hotmail.com")));
+    }
+
+    @Test
+    @WithMockUser(username = "john@doe123")
+    public void testDeleteUser() throws Exception {
+        AppUser user = TestData.getUsers().get(0);
+
+        when(userService.getUserByUsername(any())).thenReturn(user);
+        when(passwordEncoder.matches(eq("testPassword"), eq("testPassword")))
+                .thenReturn(true);
+        when(userService.deleteUser(any())).thenReturn(true);
+
+        mvc.perform(delete(new URI("/api/user/delete"))
+                .header("password", "testPassword1"))
+                .andExpect(status().isForbidden());
+
+        // Testing right password
+        mvc.perform(delete(new URI("/api/user/delete"))
+                .header("password", "testPassword"))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -289,7 +302,7 @@ public class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.toString()))
                 .andExpect(status().isBadRequest())
-                .andExpect(header().string("error", containsString("requirements")));
+                .andExpect(content().string(containsString("requirements")));
         verify(userService, times(1)).saveUser(any());
     }
 

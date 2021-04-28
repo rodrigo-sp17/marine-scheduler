@@ -2,7 +2,6 @@ package com.github.rodrigo_sp17.mscheduler.calendar;
 
 import com.github.rodrigo_sp17.mscheduler.friend.FriendService;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
-import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRepository;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

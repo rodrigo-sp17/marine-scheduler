@@ -36,19 +36,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = ShiftController.class)
 @ExtendWith(MockitoExtension.class) // This annotation enables mockito on JUnit5
 @AutoConfigureJsonTesters
-public class ShiftControllerTest {
-
-    @Autowired
-    private MockMvc mvc;
+public class ShiftControllerTest extends AbstractControllerTest {
 
     @MockBean
     private ShiftService shiftService;
 
     @MockBean
     private UserService userService;
-
-    @MockBean
-    private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private JacksonTester<ShiftRequest> shiftRequestJson;

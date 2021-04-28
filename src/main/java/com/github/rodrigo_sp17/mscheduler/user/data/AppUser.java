@@ -1,6 +1,9 @@
 package com.github.rodrigo_sp17.mscheduler.user.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.rodrigo_sp17.mscheduler.auth.SocialCredential;
+import com.github.rodrigo_sp17.mscheduler.event.data.Event;
+import com.github.rodrigo_sp17.mscheduler.event.data.Invitation;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
@@ -19,10 +22,23 @@ public class AppUser extends RepresentationModel<AppUser> {
     @Embedded
     private UserInfo userInfo;
 
-    @ManyToMany
+    @ToString.Exclude
+    @ManyToMany(cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.DETACH})
     @JsonIgnore
     private List<AppUser> friends;
 
-    @OneToMany(mappedBy = "owner")
+    @ToString.Exclude
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
     private List<Shift> shifts;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    private List<Event> ownedEvents;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "invited")
+    private List<Invitation> invitations;
+
+    @OneToMany(mappedBy = "socialUser", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    private List<SocialCredential> credentials;
 }

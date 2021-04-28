@@ -3,12 +3,9 @@ package com.github.rodrigo_sp17.mscheduler.controller;
 import com.github.rodrigo_sp17.mscheduler.TestData;
 import com.github.rodrigo_sp17.mscheduler.calendar.CalendarController;
 import com.github.rodrigo_sp17.mscheduler.calendar.CalendarService;
-import com.github.rodrigo_sp17.mscheduler.friend.FriendService;
 import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
-import com.github.rodrigo_sp17.mscheduler.shift.ShiftService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -28,16 +25,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = CalendarController.class)
-public class CalendarControllerTest {
-
-    @Autowired
-    private MockMvc mvc;
+public class CalendarControllerTest extends AbstractControllerTest {
 
     @MockBean
     private CalendarService calendarService;
-
-    @MockBean
-    private UserDetailsServiceImpl userDetailsService;
 
     @Test
     @WithMockUser("john@doe123")
@@ -54,6 +45,5 @@ public class CalendarControllerTest {
                 .andExpect(content().string(containsString("Jane Doe")))
                 .andExpect(content().string(containsString("Joao Silva")));
     }
-
 
 }

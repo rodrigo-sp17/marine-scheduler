@@ -2,19 +2,18 @@ package com.github.rodrigo_sp17.mscheduler.user;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.github.rodrigo_sp17.mscheduler.auth.SocialCredential;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.data.CreateUserRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.PasswordRequest;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
@@ -23,35 +22,23 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
 
-    public final static Logger log = LoggerFactory.getLogger(UserController.class.getSimpleName());
-
     @Autowired
-    private final UserService userService;
-
+    private UserService userService;
     @Autowired
-    private final PasswordEncoder passwordEncoder;
-
+    private PasswordEncoder passwordEncoder;
     @Autowired
-    private final JavaMailSender javaMailSender;
-
-    public UserController(UserService userService, PasswordEncoder passwordEncoder,
-                          JavaMailSender javaMailSender) {
-        this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
-        this.javaMailSender = javaMailSender;
-    }
+    private JavaMailSender javaMailSender;
 
     @GetMapping
     public CollectionModel<String> getUsernames() {
@@ -134,6 +121,62 @@ public class UserController {
         return ResponseEntity.created(toNewUser.toUri()).body(request);
     }
 
+    @PostMapping("/socialSignup")
+    public ResponseEntity<CreateUserRequest> socialSignup(@RequestBody CreateUserRequest req) {
+        AppUser user = new AppUser();
+        user.setUserInfo(new UserInfo());
+        String errorMsg = null;
+
+        String name = req.getName().trim();
+        errorMsg = validateName(name);
+        if (errorMsg != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        user.getUserInfo().setName(name);
+
+        String email = req.getEmail().trim();
+        errorMsg = validateEmail(email);
+        if (errorMsg != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        user.getUserInfo().setEmail(email);
+
+        String username = req.getUsername()
+                .trim()
+                .toLowerCase();
+        errorMsg = validateUsername(username);
+        if (errorMsg != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
+        }
+        if (!userService.isUsernameAvailable(username)) {
+            errorMsg = "The username already exists. Choose another one";
+            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMsg);
+        }
+        user.getUserInfo().setUsername(username);
+
+        var credential = new SocialCredential();
+        credential.setSocialId(req.getSocialId());
+        credential.setRegistrationId(req.getRegistrationId());
+        credential.setSocialUser(user);
+
+        user.setCredentials(List.of(credential));
+
+        var addedUser = userService.saveUser(user);
+
+        String addedUsername = addedUser.getUserInfo().getUsername();
+        log.info("Created new user: " + addedUsername);
+        String token = userService.encodeToken(addedUsername);
+
+        CreateUserRequest request = getRequestFromUser(addedUser);
+        Link toNewUser = linkTo(methodOn(UserController.class).getLoggedUser(null))
+                .withSelfRel();
+
+        return ResponseEntity.created(toNewUser.toUri())
+                .header("Authorization", "Bearer " + token)
+                .body(request);
+    }
+
+
     @PutMapping
     public ResponseEntity<CreateUserRequest> editUserInfo(@RequestBody CreateUserRequest req) {
         AppUser userToEdit = userService.getUserById(req.getUserId());
@@ -147,6 +190,24 @@ public class UserController {
         CreateUserRequest request = getRequestFromUser(editedUser);
         request.add(linkTo(methodOn(UserController.class).getLoggedUser(null)).withSelfRel());
         return ResponseEntity.ok(request);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<CreateUserRequest> deleteUser(Authentication auth,
+                                                        @RequestHeader String password) {
+        var userToDelete = userService.getUserByUsername(auth.getName());
+        var storedPassword = userToDelete.getUserInfo().getPassword();
+
+        if (!passwordEncoder.matches(password, storedPassword)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account deletion unauthorized");
+        }
+
+        if (userService.deleteUser(userToDelete)) {
+            log.info("Deleted user: " + userToDelete.getUserInfo().getUsername());
+            return ResponseEntity.noContent().build();
+        }
+
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Deletion failed");
     }
 
     @PostMapping("/recover")
@@ -252,11 +313,58 @@ public class UserController {
         return email;
     }
 
+    // TODO - new validation schema (Hibernate vs Flutter)
     private boolean isValidPassword(String password) {
         if (password.length() < 8 || password.length() > 64) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Validates the name according to pre-requisites
+     * @param name the trimmed name, to validate
+     * @return null, if valid, or a String error message if invalid
+     */
+    private String validateName(String name) {
+        if (name.isBlank() || name.isEmpty()) {
+            return "Name is mandatory";
+        }
+        if (!name.matches("^[a-zA-Z]+\\s[a-zA-Z]+$")) {
+            return "Names must have only alphabetical letters" +
+                    " and contain first name and last name separated by space";
+        }
+        return null;
+    }
+
+    /**
+     * Validates the username according to pre-requisites
+     * @param username the sanitized username (no spaces, all lower-case) to validate
+     * @return null, if valid, or a String error message if invalid
+     */
+    private String validateUsername(String username) {
+        if (username.matches("[A-Z ]+")) {
+            return "Username must not have spaces or capital letters";
+        }
+        if (username.length() < 6 || username.length() > 30) {
+            return "Usernames must be between 6 to 30 characters long";
+        }
+        return null;
+    }
+
+    /**
+     * Validates the email according to pre-requisites
+     * @param email the trimmed email to validate
+     * @return null, if valid, or a String error message if invalid
+     */
+    private String validateEmail(String email) {
+        if (email.isBlank() || email.isEmpty()) {
+            return "Email is mandatory";
+        }
+        if (!email.matches("^.+[@].+$")) {
+            return "Invalid email address";
+        }
+        return null;
     }
 
 }
