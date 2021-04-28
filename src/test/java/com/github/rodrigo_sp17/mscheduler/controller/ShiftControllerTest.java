@@ -1,11 +1,10 @@
 package com.github.rodrigo_sp17.mscheduler.controller;
 
 import com.github.rodrigo_sp17.mscheduler.TestData;
-import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
 import com.github.rodrigo_sp17.mscheduler.shift.ShiftController;
 import com.github.rodrigo_sp17.mscheduler.shift.ShiftService;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
-import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
+import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +18,6 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -45,7 +43,7 @@ public class ShiftControllerTest extends AbstractControllerTest {
     private UserService userService;
 
     @Autowired
-    private JacksonTester<ShiftRequest> shiftRequestJson;
+    private JacksonTester<ShiftRequestDTO> shiftRequestJson;
 
     @Captor
     ArgumentCaptor<List<Shift>> acList;
@@ -81,7 +79,7 @@ public class ShiftControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(username = "john@doe123")
     public void testAddShifts() throws Exception {
-        var req = TestData.getShiftRequest();
+        var req = TestData.getShiftRequestDTO();
         when(shiftService.addShifts(any(), eq("john@doe123"))).thenReturn(TestData.getShifts());
 
         mvc.perform(post(new URI("/api/shift/add"))
@@ -99,7 +97,7 @@ public class ShiftControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(username = "john@doe123")
     public void testEditShift() throws Exception {
-        var req = TestData.getShiftRequest();
+        var req = TestData.getShiftRequestDTO();
         req.setShiftId(null);
 
         var shift = TestData.getShifts().get(0);

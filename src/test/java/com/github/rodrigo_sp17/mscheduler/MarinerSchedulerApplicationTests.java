@@ -1,6 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler;
 
-import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
+import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +39,7 @@ class MarinerSchedulerApplicationTests {
 	// TODO - decouple tests
 
 	@Autowired
-	private JacksonTester<ShiftRequest> shiftRequestJson;
+	private JacksonTester<ShiftRequestDTO> shiftRequestJson;
 
 	@Autowired
 	private MockMvc mvc;
@@ -97,7 +97,7 @@ class MarinerSchedulerApplicationTests {
 	@Order(2)
 	@WithMockUser("john@doe123")
 	public void testAddShifts() throws Exception {
-		ShiftRequest request = TestData.getShiftRequest();
+		ShiftRequestDTO request = TestData.getShiftRequestDTO();
 
 		mvc.perform(get("/api/shift"))
 				.andExpect(status().isOk())

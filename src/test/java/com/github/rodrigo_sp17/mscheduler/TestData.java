@@ -2,7 +2,7 @@ package com.github.rodrigo_sp17.mscheduler;
 
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
-import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
+import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
 
@@ -66,8 +66,8 @@ public class TestData {
         return Arrays.asList(shift1, shift2);
     }
 
-    public static ShiftRequest getShiftRequest() {
-        var shiftRequest = new ShiftRequest();
+    public static ShiftRequestDTO getShiftRequestDTO() {
+        var shiftRequest = new ShiftRequestDTO();
         shiftRequest.setUnavailabilityStartDate(LocalDate.of(2020, 11, 01));
         shiftRequest.setBoardingDate(LocalDate.of(2020, 11, 02));
         shiftRequest.setLeavingDate(LocalDate.of(2020, 11, 28));

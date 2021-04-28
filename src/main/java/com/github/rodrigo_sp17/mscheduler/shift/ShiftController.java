@@ -1,7 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.shift;
 
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
-import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequest;
+import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,15 +25,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class ShiftController {
 
     @Autowired
-    private final ShiftService shiftService;
-
+    private ShiftService shiftService;
     @Autowired
-    private final UserService userService;
-
-    public ShiftController(ShiftService shiftService, UserService userService) {
-        this.shiftService = shiftService;
-        this.userService = userService;
-    }
+    private UserService userService;
 
     @GetMapping("/{id}")
     public ResponseEntity<Shift> getShiftById(@PathVariable Long id,
@@ -55,14 +50,10 @@ public class ShiftController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<CollectionModel<Shift>> addShift(@RequestBody ShiftRequest shiftRequest,
+    public ResponseEntity<CollectionModel<Shift>> addShift(
+            @Valid @RequestBody ShiftRequestDTO shiftRequest,
                                           Authentication auth) {
         String errorMsg;
-        // Ensures a boarding date
-        if (shiftRequest.getBoardingDate() == null) {
-            errorMsg = "BoardingDate cannot be null";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
-        }
 
         // Adjusts cycle, if not provided a leaving date
         // Ensures a leaving date
@@ -79,10 +70,10 @@ public class ShiftController {
         }
 
         // Ensures unavailability dates
-        ShiftRequest req = sanitizeRequest(shiftRequest);
+        ShiftRequestDTO req = sanitizeRequest(shiftRequest);
 
         // Validates dates
-        if (!validateRequestDates(req)) {
+        if (!isRequestDatesValid(req)) {
             errorMsg = "Period of unavailability cannot be smaller than boarding period";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
@@ -91,6 +82,7 @@ public class ShiftController {
         Integer repeat = req.getRepeat();
         if (repeat == null) {
             req.setRepeat(0);
+            repeat = 0;
         }
 
         // Creates the necessary number of shifts according to the the repeat parameter
@@ -126,7 +118,7 @@ public class ShiftController {
     }
 
     @PutMapping("/edit")
-    public ResponseEntity<Shift> editShift(@RequestBody ShiftRequest shiftRequest,
+    public ResponseEntity<Shift> editShift(@RequestBody ShiftRequestDTO shiftRequest,
                                            Authentication auth) {
         String errorMsg;
         Long shiftId = shiftRequest.getShiftId();
@@ -141,8 +133,8 @@ public class ShiftController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMsg);
         }
 
-        ShiftRequest req = sanitizeRequest(shiftRequest);
-        if (!validateRequestDates(req)) {
+        ShiftRequestDTO req = sanitizeRequest(shiftRequest);
+        if (!isRequestDatesValid(req)) {
             errorMsg = "Period of unavailability cannot be smaller than boarding period";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
@@ -182,7 +174,7 @@ public class ShiftController {
      * Checks if the dates inside the request make sense
      * @return  true if valid, false if invalid
      */
-    private boolean validateRequestDates(ShiftRequest req) {
+    private boolean isRequestDatesValid(ShiftRequestDTO req) {
         if (req.getUnavailabilityStartDate() != null
                 && req.getUnavailabilityStartDate().isAfter(req.getBoardingDate())) {
             return false;
@@ -201,11 +193,11 @@ public class ShiftController {
     }
 
     /**
-     * Sanitizes ShiftRequest to ensure all date fields are present
+     * Sanitizes ShiftRequestDTO to ensure all date fields are present
      * @param request the request to be sanitized
      * @return sanitized request with all dates filled
      */
-    private ShiftRequest sanitizeRequest(ShiftRequest request) {
+    private ShiftRequestDTO sanitizeRequest(ShiftRequestDTO request) {
         if (request.getUnavailabilityStartDate() == null) {
             request.setUnavailabilityStartDate(request.getBoardingDate());
         }
