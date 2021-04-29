@@ -5,6 +5,7 @@ import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestRepository;
 import com.github.rodrigo_sp17.mscheduler.friend.exception.FriendRequestNotFoundException;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
+import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,8 +124,12 @@ public class FriendService {
         AppUser owner = userService.getUserByUsername(username);
         AppUser friend = userService.getUserByUsername(friendUsername);
 
-        owner.getFriends().remove(friend);
-        friend.getFriends().remove(owner);
+        if (owner.getFriends().contains(friend)) {
+            owner.getFriends().remove(friend);
+            friend.getFriends().remove(owner);
+        } else {
+            throw new UserNotFoundException("Not a friend");
+        }
 
         userService.saveUser(owner);
         userService.saveUser(friend);
