@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,25 +30,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * This test relies on previously inserted data in data.sql
- */
 @SpringBootTest
 @AutoConfigureJsonTesters
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 public class EventIntegrationTest {
 
     private final String URI = "/api/event";
 
     @Autowired
     private MockMvc mvc;
-
     @Autowired
     private JacksonTester<EventDTO> dtoJson;
-
     @MockBean
     private JavaMailSender mailSender;
-
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
 
