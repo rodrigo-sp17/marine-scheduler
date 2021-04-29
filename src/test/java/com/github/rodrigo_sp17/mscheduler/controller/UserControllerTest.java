@@ -5,14 +5,12 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.rodrigo_sp17.mscheduler.TestData;
-import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
 import com.github.rodrigo_sp17.mscheduler.user.UserController;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,7 +19,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.sql.Timestamp;
@@ -29,7 +26,8 @@ import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,10 +39,8 @@ public class UserControllerTest extends AbstractControllerTest {
 
     @MockBean
     private UserService userService;
-
     @MockBean
     private JavaMailSender mailSender;
-
     @MockBean
     private PasswordEncoder passwordEncoder;
 
@@ -80,6 +76,57 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testSignupExoticNames() throws Exception {
+        when(userService.getUserByUsername("someusername")).thenReturn(TestData.getUsers().get(0));
+        when(userService.isUsernameAvailable(any())).thenReturn(true);
+        when(userService.saveUser(any())).thenReturn(TestData.getUsers().get(0));
+
+        JSONObject json = new JSONObject();
+        json.put("username", "someusername");
+        json.put("password", "anypasssword");
+        json.put("confirmPassword", "anypasssword");
+        json.put("email", "some@email.com");
+
+        json.put("name", "João Silva");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .content(json.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        json.put("name", "Héllen Marquês");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .content(json.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        json.put("name", "Joseph Heckt-Philson");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .content(json.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        json.put("name", "Clayton Türunen");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .content(json.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        json.put("name", "Name with 1");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .content(json.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("numbers")));
+
+        json.put("name", "Name /");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .content(json.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("must")));
+    }
+
+    @Test
     public void testWrongSignup() throws Exception {
         AppUser parsedUser = TestData.getUsers().get(0);
         parsedUser.setUserId(null);
@@ -102,13 +149,6 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Names")));
-
-        jsonRequest.put("name", "Rodrigo");
-        mvc.perform(post(new URI("/api/user/signup"))
-                .content(jsonRequest.toString())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Names must")));
 
         jsonRequest.put("name", "Rodrigo1 Rodrigues");
         mvc.perform(post(new URI("/api/user/signup"))
