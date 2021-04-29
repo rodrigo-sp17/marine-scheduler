@@ -2,7 +2,6 @@ package com.github.rodrigo_sp17.mscheduler.integration;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,19 +10,16 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -149,5 +145,25 @@ public class AuthorizationIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonRequest.toString()))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    @WithMockUser("Edited Guy")
+    public void test_noDuplicateEmailOnEdition() throws Exception {
+        var request = new JSONObject();
+        request.put("userId", 11);
+        request.put("email", "thirdwheel@gmail.com");
+
+        mvc.perform(put(new URI("/api/user"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.toString()))
+                .andExpect(status().isConflict());
+
+        request.put("email", "definetelynew@gmail.com");
+
+        mvc.perform(put(new URI("/api/user"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.toString()))
+                .andExpect(status().isOk());
     }
 }

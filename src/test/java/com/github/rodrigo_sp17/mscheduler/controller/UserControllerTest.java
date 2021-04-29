@@ -279,7 +279,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         when(userService.getUserById(1L)).thenReturn(originalUser);
         when(userService.saveUser(any())).thenReturn(editedUser);
-
+        when(userService.isEmailAvailable(any())).thenReturn(true);
         mvc.perform(put(new URI("/api/user"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request.toString()))

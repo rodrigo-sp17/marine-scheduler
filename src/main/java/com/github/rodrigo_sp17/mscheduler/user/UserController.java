@@ -62,7 +62,7 @@ public class UserController {
     public ResponseEntity<UserDTO> signup(@Valid @RequestBody UserDTO req) {
         AppUser user = new AppUser();
         user.setUserInfo(new UserInfo());
-        String errorMsg = null;
+        String errorMsg;
 
         // Name validation
         String name = req.getName().trim();
@@ -159,6 +159,10 @@ public class UserController {
             userToEdit.getUserInfo().setName(req.getName());
         }
         if (req.getEmail() != null) {
+            if (!userService.isEmailAvailable(req.getEmail())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "The email already exists. Choose another one");
+            }
             userToEdit.getUserInfo().setEmail(req.getEmail());
         }
         AppUser editedUser = userService.saveUser(userToEdit);
