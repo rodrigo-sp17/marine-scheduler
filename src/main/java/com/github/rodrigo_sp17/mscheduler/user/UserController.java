@@ -78,6 +78,15 @@ public class UserController {
         }
         user.getUserInfo().setUsername(username);
 
+        // Email validation
+        String email = req.getEmail().trim();    // Trimming to avoid common typos
+        if (!userService.isEmailAvailable(email)) {
+            errorMsg = "The email already exists. Choose another one!";
+            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMsg);
+        }
+        // TODO - send email confirmation
+        user.getUserInfo().setEmail(email);
+
         // Password validation
         String password = req.getPassword();
         if (!password.equals(req.getConfirmPassword())) {
@@ -86,11 +95,6 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMsg);
         }
         user.getUserInfo().setPassword(passwordEncoder.encode(password));
-
-        // Email validation
-        String email = req.getEmail().trim();    // Trimming to avoid common typos
-        // TODO - send email confirmation
-        user.getUserInfo().setEmail(email);
 
         var addedUser = userService.saveUser(user);
         log.info("Created new user: " + addedUser.getUserInfo().getUsername());
@@ -116,6 +120,10 @@ public class UserController {
         }
         String name = req.getName().trim();
         String email = req.getEmail().trim();
+        if (!userService.isEmailAvailable(email)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "The email already exists. Choose another one");
+        }
 
         user.getUserInfo().setName(name);
         user.getUserInfo().setEmail(email);

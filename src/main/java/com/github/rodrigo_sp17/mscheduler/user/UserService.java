@@ -50,6 +50,10 @@ public class UserService {
         return userRepository.findByUsername(username) == null;
     }
 
+    public boolean isEmailAvailable(String email) {
+        return userRepository.findByEmail(email) == null;
+    }
+
     public AppUser getUserByUsername(String username) {
         var user = userRepository.findByUsername(username);
         if (user == null) {

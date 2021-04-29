@@ -20,8 +20,7 @@ public class SocialUserDTO extends RepresentationModel<SocialUserDTO> {
     private String username;
 
     @Size(min = 1, max = 150, message = "Names are mandatory and must have at most 150 characters")
-    @Pattern(regexp = "^[a-zA-Z]+\\s[a-zA-Z]+$", message = "Names must have only alphabetical letters " +
-            "and contain first name and last name separated by space")
+    @Pattern(regexp = "^([^0-9{}\\\\/()\\]\\[]*)$", message = "Names must not contain numbers or \\/(){}[]")
     private String name;
 
     @NotBlank(message = "Email is mandatory")

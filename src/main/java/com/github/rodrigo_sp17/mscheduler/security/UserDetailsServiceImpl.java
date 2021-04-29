@@ -24,13 +24,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
+        AppUser user;
         try {
-            AppUser user = userService.getUserByUsername(s);
-            return new User(user.getUserInfo().getUsername(),
-                    user.getUserInfo().getPassword(),
-                    Collections.emptyList());
+            user = userService.getUserByUsername(s);
         } catch (UserNotFoundException e) {
-            throw new UsernameNotFoundException(e.getMessage());
+            try {
+                user = userService.getUserByEmail(s);
+            } catch (UserNotFoundException d) {
+                throw new UsernameNotFoundException("Username not found: " + s);
+            }
         }
+
+        return new User(user.getUserInfo().getUsername(),
+                user.getUserInfo().getPassword(),
+                Collections.emptyList());
     }
 }

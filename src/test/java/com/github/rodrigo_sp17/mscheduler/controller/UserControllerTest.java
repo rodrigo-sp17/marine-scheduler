@@ -51,6 +51,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         when(userService.saveUser(any())).thenReturn(TestData.getUsers().get(0));
         when(userService.isUsernameAvailable("john@doe123")).thenReturn(true);
+        when(userService.isEmailAvailable(parsedUser.getUserInfo().getEmail())).thenReturn(true);
 
         // Manually parses the JSON to allow @JsonIgnore annotation on response
         JSONObject jsonRequest = new JSONObject();
@@ -79,6 +80,7 @@ public class UserControllerTest extends AbstractControllerTest {
     public void testSignupExoticNames() throws Exception {
         when(userService.getUserByUsername("someusername")).thenReturn(TestData.getUsers().get(0));
         when(userService.isUsernameAvailable(any())).thenReturn(true);
+        when(userService.isEmailAvailable(any())).thenReturn(true);
         when(userService.saveUser(any())).thenReturn(TestData.getUsers().get(0));
 
         JSONObject json = new JSONObject();
@@ -180,6 +182,7 @@ public class UserControllerTest extends AbstractControllerTest {
         jsonRequest.put("username", "newUser");
 
         when(userService.isUsernameAvailable(any())).thenReturn(true);
+        when(userService.isEmailAvailable(any())).thenReturn(true);
         // Test wrong password
         jsonRequest.put("confirmPassword", "testPassword1");
         mvc.perform(post(new URI("/api/user/signup"))
@@ -220,6 +223,7 @@ public class UserControllerTest extends AbstractControllerTest {
         when(userService.getUserByUsername("john@doe123")).thenReturn(TestData.getUsers().get(0));
         when(userService.saveUser(any())).thenReturn(TestData.getUsers().get(0));
         when(userService.isUsernameAvailable(any())).thenReturn(false);
+        when(userService.isEmailAvailable(any())).thenReturn(false);
 
         JSONObject jsonRequest = new JSONObject();
         jsonRequest.put("name", "");
@@ -255,6 +259,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .andExpect(content().string(containsString("username")));
 
         when(userService.isUsernameAvailable(any())).thenReturn(true);
+        when(userService.isEmailAvailable(any())).thenReturn(true);
         mvc.perform(post(new URI("/api/user/socialSignup"))
                 .content(jsonRequest.toString())
                 .contentType(MediaType.APPLICATION_JSON))

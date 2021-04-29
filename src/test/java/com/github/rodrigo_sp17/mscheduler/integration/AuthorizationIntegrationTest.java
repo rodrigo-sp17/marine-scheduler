@@ -2,6 +2,7 @@ package com.github.rodrigo_sp17.mscheduler.integration;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,7 +11,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 
@@ -34,6 +39,7 @@ public class AuthorizationIntegrationTest {
     private ClientRegistrationRepository clientRegistrationRepository;
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void test_SignupAndAuthorization() throws Exception {
         mvc.perform(get(new URI("/api/user")))
                 .andExpect(status().isForbidden());
@@ -83,5 +89,65 @@ public class AuthorizationIntegrationTest {
         mvc.perform(get(new URI("/api/user"))
                 .header("Authorization", token))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void test_emailLogin() throws Exception {
+        JSONObject jsonRequest = new JSONObject();
+        var username = "sumother12";
+        var password = "password123";
+        var email = "someother@gmail.com";
+        jsonRequest.put("name", "Some Other");
+        jsonRequest.put("username", username);
+        jsonRequest.put("password", password);
+        jsonRequest.put("confirmPassword", password);
+        jsonRequest.put("email", email);
+
+        mvc.perform(post(new URI("/api/user/signup"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest.toString()))
+                .andExpect(status().isCreated());
+
+        var jsonLogin = new JSONObject();
+        jsonLogin.put("username", username)
+                .put("password", password);
+
+        mvc.perform(post(new URI("/login"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonLogin.toString()))
+                .andExpect(status().isOk());
+
+        jsonLogin.put("username", email);
+        mvc.perform(post(new URI("/login"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonLogin.toString()))
+                .andExpect(status().isOk());
+
+        jsonLogin.put("password", "wrongpass");
+        mvc.perform(post(new URI("/login"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonLogin.toString()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void test_noDuplicateEmailOnSignup() throws Exception {
+        JSONObject jsonRequest = new JSONObject();
+        jsonRequest.put("name", "Lazio Lazia");
+        jsonRequest.put("username", "laazio123");
+        jsonRequest.put("password", "pasWdssh@#!123");
+        jsonRequest.put("confirmPassword", "pasWdssh@#!123");
+        jsonRequest.put("email", "fifthwheel@gmail.com");
+
+        mvc.perform(post(new URI("/api/user/signup"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest.toString()))
+                .andExpect(status().isConflict());
+
+        jsonRequest.put("email", "someuniquemail@gmail.com");
+        mvc.perform(post(new URI("/api/user/signup"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest.toString()))
+                .andExpect(status().isCreated());
     }
 }
