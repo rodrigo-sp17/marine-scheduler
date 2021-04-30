@@ -39,6 +39,7 @@ public class AppUser extends RepresentationModel<AppUser> {
     @OneToMany(mappedBy = "invited")
     private List<Invitation> invitations;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "socialUser", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private List<SocialCredential> credentials;
 }
