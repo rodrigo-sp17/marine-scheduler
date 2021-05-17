@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 src/main/java/com/github/rodrigo_sp17/mscheduler/debug/
+env.list
 
 ### STS ###
 .apt_generated
