@@ -10,9 +10,9 @@ Marine Scheduler is website that allows mariners and offshore workers to add the
 The inspiration for this project comes from the frustration of never knowing when your seafarer friends will be available for events, having to constantly message them to get this information. With the website, messaging is no longer necessary: the seafarer will fill his or her shift on the app and his friends will have access to those shifts.
 
 ## Usage
-Website is available at https://agendamaritima.herokuapp.com
+Website is available at https://seamates.herokuapp.com
 
-API usage is documented with Swagger at https://agendamaritima.herokuapp.com/swagger-ui.html
+API usage is documented with Swagger at https://seamates.herokuapp.com/swagger-ui.html
 
 ## Features
 - [x] Checking available users
@@ -20,8 +20,7 @@ API usage is documented with Swagger at https://agendamaritima.herokuapp.com/swa
 - [x] Shift calendar
 - [x] Facebook login (OAuth2)
 - [ ] Events
-- [ ] Push notifications
-- [ ] Responsiveness
+- [ ] Discussion forums 
 
 ## Tech Stack
 - [React](https://reactjs.org/)
@@ -32,4 +31,4 @@ API usage is documented with Swagger at https://agendamaritima.herokuapp.com/swa
 - [PostgreSQL](https://www.postgresql.org/)
 
 ## License
-[GPL-3.0](https://choosealicense.com/licenses/gpl-3.0)
+[GPL-3.0](COPYING)
