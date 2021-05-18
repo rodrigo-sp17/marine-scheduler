@@ -107,6 +107,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
+                "https://facebook.com/",
                 "https://agendamaritima.herokuapp.com/",
                 "https://seamates.herokuapp.com/",
                 "https://seamates-test.herokuapp.com/",
