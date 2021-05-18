@@ -10,11 +10,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 public abstract class AbstractControllerTest {
     @MockBean
-    private UserDetailsServiceImpl userDetailsService;
+    protected UserDetailsServiceImpl userDetailsService;
     @MockBean
-    private SocialCredentialRepository socialCredentialRepository;
+    protected SocialCredentialRepository socialCredentialRepository;
     @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
+    protected ClientRegistrationRepository clientRegistrationRepository;
 
     @Autowired
     protected MockMvc mvc;

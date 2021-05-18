@@ -2,8 +2,6 @@ package com.github.rodrigo_sp17.mscheduler.auth;
 
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
-import com.nimbusds.common.contenttype.ContentType;
-import com.nimbusds.jose.shaded.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,11 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -30,9 +25,7 @@ public class OAuthController {
     private OAuth2Service oAuth2Service;
 
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteUser(HttpServletRequest request,
-                                             @RequestParam("signed_request") String signedRequest)
-            throws URISyntaxException {
+    public ResponseEntity<FacebookConfirmationDTO> deleteUser(@RequestParam("signed_request") String signedRequest) {
         var data = oAuth2Service.parseSignedRequest(signedRequest);
         if (data == null) {
             log.info("Failed OAuth2 deletion attempt");
@@ -46,14 +39,15 @@ public class OAuthController {
                 .getSocialUser();
 
         var username = user.getUserInfo().getUsername();
-        //userService.deleteUser(user);
+        userService.deleteUser(user);
 
         var token = oAuth2Service.getSignedRequest(Map.of("username", username));
-        var json = new JSONObject();
-        json.put("url", new URI("/oauth2/delete-status?id=" + token).toString());
-        json.put("confirmation_code", token);
-
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json.toJSONString());
+        var link = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/oauth2/delete-status")
+                .queryParam("id", token)
+                .toUriString();
+        var dto = new FacebookConfirmationDTO(link, token);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(dto);
     }
 
     @GetMapping("/delete-status")
