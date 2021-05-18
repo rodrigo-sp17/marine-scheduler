@@ -2,9 +2,12 @@ package com.github.rodrigo_sp17.mscheduler.auth;
 
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
+import com.nimbusds.common.contenttype.ContentType;
+import com.nimbusds.jose.shaded.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,10 +30,9 @@ public class OAuthController {
     private OAuth2Service oAuth2Service;
 
     @PostMapping("/delete")
-    public ResponseEntity<Map<String, String>> deleteUser(HttpServletRequest request,
+    public ResponseEntity<String> deleteUser(HttpServletRequest request,
                                              @RequestParam("signed_request") String signedRequest)
             throws URISyntaxException {
-        log.info(signedRequest);
         var data = oAuth2Service.parseSignedRequest(signedRequest);
         if (data == null) {
             log.info("Failed OAuth2 deletion attempt");
@@ -47,11 +49,11 @@ public class OAuthController {
         //userService.deleteUser(user);
 
         var token = oAuth2Service.getSignedRequest(Map.of("username", username));
-        var response = new HashMap<String, String>();
-        response.put("url", new URI("/oauth2/delete-status?id=" + token).toString());
-        response.put("confirmation_code", token);
+        var json = new JSONObject();
+        json.put("url", new URI("/oauth2/delete-status?id=" + token).toString());
+        json.put("confirmation_code", token);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json.toJSONString());
     }
 
     @GetMapping("/delete-status")
