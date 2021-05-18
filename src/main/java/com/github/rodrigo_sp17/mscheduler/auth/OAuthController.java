@@ -25,7 +25,7 @@ public class OAuthController {
     private OAuth2Service oAuth2Service;
 
     @PostMapping("/delete")
-    public ResponseEntity<FacebookConfirmationDTO> deleteUser(@RequestParam("signed_request") String signedRequest) {
+    public ResponseEntity<String> deleteUser(@RequestParam("signed_request") String signedRequest) {
         var data = oAuth2Service.parseSignedRequest(signedRequest);
         if (data == null) {
             log.info("Failed OAuth2 deletion attempt");
@@ -46,8 +46,8 @@ public class OAuthController {
                 .path("/oauth2/delete-status")
                 .queryParam("id", token)
                 .toUriString();
-        var dto = new FacebookConfirmationDTO(link, token);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(dto);
+        var jsonResponse = String.format("{url: \"%s\", confirmation_code: \"%s\"}", link, token);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(jsonResponse);
     }
 
     @GetMapping("/delete-status")
