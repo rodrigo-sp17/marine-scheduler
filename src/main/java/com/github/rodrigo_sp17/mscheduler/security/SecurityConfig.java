@@ -49,12 +49,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/user/socialSignup",
                         "/api/user/recover",
                         "/api/user/changePassword",
-                        "/api/user/resetPassword"
+                        "/api/user/resetPassword",
+                        "/oauth2/delete"
                 ).permitAll()
                 .antMatchers(
                         "/swagger-ui.html",
                         "/swagger-ui/**",
-                        "/v3/api-docs/**"
+                        "/v3/api-docs/**",
+                        "/oauth2/delete-status"
                 ).permitAll()
                 .antMatchers(
                         "/",
