@@ -1,4 +1,4 @@
-package com.github.rodrigo_sp17.mscheduler.auth;
+package com.github.rodrigo_sp17.mscheduler.auth.data;
 
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import lombok.Data;

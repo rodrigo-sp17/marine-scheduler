@@ -1,5 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.auth;
 
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;

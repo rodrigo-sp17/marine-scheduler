@@ -2,8 +2,8 @@ package com.github.rodrigo_sp17.mscheduler.user;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.github.rodrigo_sp17.mscheduler.auth.SocialCredential;
-import com.github.rodrigo_sp17.mscheduler.auth.SocialUserDTO;
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredential;
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialUserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.PasswordRequestDTO;

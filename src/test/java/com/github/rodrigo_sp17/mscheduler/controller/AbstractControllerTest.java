@@ -1,6 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.controller;
 
-import com.github.rodrigo_sp17.mscheduler.auth.SocialCredentialRepository;
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;

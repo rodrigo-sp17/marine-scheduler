@@ -1,5 +1,6 @@
-package com.github.rodrigo_sp17.mscheduler.auth;
+package com.github.rodrigo_sp17.mscheduler.auth.data;
 
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredential;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

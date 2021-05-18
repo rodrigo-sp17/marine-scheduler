@@ -3,7 +3,7 @@ package com.github.rodrigo_sp17.mscheduler.controller;
 import com.github.rodrigo_sp17.mscheduler.TestData;
 import com.github.rodrigo_sp17.mscheduler.auth.OAuth2Service;
 import com.github.rodrigo_sp17.mscheduler.auth.OAuthController;
-import com.github.rodrigo_sp17.mscheduler.auth.SocialCredential;
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredential;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

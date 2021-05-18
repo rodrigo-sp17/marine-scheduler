@@ -2,6 +2,7 @@ package com.github.rodrigo_sp17.mscheduler.auth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import com.github.rodrigo_sp17.mscheduler.security.SecurityConstants;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
