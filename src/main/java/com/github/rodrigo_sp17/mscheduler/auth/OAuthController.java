@@ -46,13 +46,13 @@ public class OAuthController {
                 .path("/oauth2/delete-status")
                 .queryParam("id", token)
                 .toUriString();
-        var jsonResponse = String.format("{url: \"%s\", confirmation_code: \"%s\"}", link, token);
+        var jsonResponse = String.format("{url: \"%s\", confirmation_code: \"%s\"}", link, "delete200");
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(jsonResponse);
     }
 
     @GetMapping("/delete-status")
-    public ResponseEntity<String> getDeleteStatus(@RequestParam("id") String confirmationCode) {
-        String username = oAuth2Service.parseSignedRequest(confirmationCode).get("username").toString();
+    public ResponseEntity<String> getDeleteStatus(@RequestParam("id") String token) {
+        String username = oAuth2Service.parseSignedRequest(token).get("username").toString();
         try {
             var user = userService.getUserByUsername(username);
         } catch (UserNotFoundException e) {
