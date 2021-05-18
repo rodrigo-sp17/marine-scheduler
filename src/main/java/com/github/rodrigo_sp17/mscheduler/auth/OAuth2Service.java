@@ -16,7 +16,7 @@ import java.util.Map;
 public class OAuth2Service {
     private final String facebookSecret;
 
-    public OAuth2Service(@Value("${facebook.secret}") String facebookSecret) {
+    public OAuth2Service(@Value("${spring.security.oauth2.client.registration.facebook.client-secret}") String facebookSecret) {
         this.facebookSecret = facebookSecret;
     }
 
