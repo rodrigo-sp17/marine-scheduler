@@ -10,8 +10,8 @@
 	</parent>
 	<groupId>com.github.rodrigo_sp17</groupId>
 	<artifactId>mscheduler</artifactId>
-	<version>0.2.0</version>
-	<name>Mariner Scheduler</name>
+	<version>0.4.2</version>
+	<name>Marine Scheduler</name>
 	<description>Scheduler for mariners, family and friends, allowing everyone to see when the mariner is available.</description>
 
 	<properties>
