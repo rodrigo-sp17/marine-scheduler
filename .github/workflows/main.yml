@@ -3,7 +3,7 @@ name: Deploy to Heroku
 on:
   push:
     tags:
-      - "v*"
+      - v*
 
 jobs:
   build:
