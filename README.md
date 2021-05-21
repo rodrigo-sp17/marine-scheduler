@@ -45,7 +45,10 @@ provider.
 
 
 ## Getting Started
-For building the project, make sure you have [Maven](https://maven.apache.org/download.cgi) (at least 3.6.3) installed.
+For building the project, make sure you have:
+- [Maven](https://maven.apache.org/download.cgi) (at least 3.6.3)
+- [Redis](https://redis.io) (at least 6.2.3)
+- [PostgresSQL](https://www.postgresql.org/) (or any other SQL database - may need extra configuration)
 
 You will also have to set the following environment variables:
 ```sh
