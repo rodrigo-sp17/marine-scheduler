@@ -53,7 +53,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/oauth2/delete-status"
+                        "/oauth2/delete-status",
+                        "/privacy",
+                        "/terms"
                 ).permitAll()
                 .antMatchers(
                         "/",
