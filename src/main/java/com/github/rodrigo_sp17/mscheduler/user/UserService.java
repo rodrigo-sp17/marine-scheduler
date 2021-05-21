@@ -70,6 +70,7 @@ public class UserService {
         return user;
     }
 
+/*
     public String encodeToken(String username) {
         return JWT.create()
                 .withSubject(username)
@@ -80,17 +81,7 @@ public class UserService {
                 .sign(Algorithm.HMAC512(jwtSecret));
     }
 
-    public String createRecoveryToken(AppUser user, LocalDateTime time) {
-        String token = JWT.create()
-                .withSubject(user.getUserInfo().getUsername())
-                .withExpiresAt(Timestamp.valueOf(time.plusMinutes(
-                        SecurityConstants.RESET_TOKEN_MINUTES_TO_EXPIRE))
-                )
-                .sign(Algorithm.HMAC512(jwtSecret + user.getUserInfo()
-                        .getPassword()));
 
-        return token;
-    }
 
     public DecodedJWT decodeRecoveryToken(String username, String token) {
         if (token == null) throw new JWTVerificationException("Token is null");
@@ -102,6 +93,7 @@ public class UserService {
                 .build()
                 .verify(token);
     }
+*/
 
     @Transactional
     public AppUser saveUser(AppUser user) {

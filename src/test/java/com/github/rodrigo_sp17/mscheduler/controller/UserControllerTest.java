@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.rodrigo_sp17.mscheduler.TestData;
+import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.user.UserController;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
@@ -338,11 +339,11 @@ public class UserControllerTest extends AbstractControllerTest {
 
         DecodedJWT decoded = JWT.decode(token);
 
-        when(userService.decodeRecoveryToken(any(), eq(token)))
+        when(authenticationService.decodeRecoveryToken(any(), eq(token)))
                 .thenThrow(JWTVerificationException.class);
-        when(userService.decodeRecoveryToken(eq(user.getUserInfo().getUsername()), eq(token)))
+        when(authenticationService.decodeRecoveryToken(eq(user.getUserInfo().getUsername()), eq(token)))
                 .thenReturn(decoded);
-        when(userService.decodeRecoveryToken(any(), eq("random")))
+        when(authenticationService.decodeRecoveryToken(any(), eq("random")))
                 .thenThrow(JWTVerificationException.class);
 
         when(userService.getUserByUsername(user.getUserInfo().getUsername())).thenReturn(user);

@@ -1,7 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
+import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,12 +15,12 @@ import java.util.Collections;
 
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
-    private final String jwtSecret;
+    private final AuthenticationService authenticationService;
 
     public JWTAuthorizationFilter(AuthenticationManager authenticationManager,
-                                  String jwtSecret) {
+                                  AuthenticationService authenticationService) {
         super(authenticationManager);
-        this.jwtSecret = jwtSecret;
+        this.authenticationService = authenticationService;
     }
 
     @Override
@@ -42,9 +41,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
     private UsernamePasswordAuthenticationToken parseToken(String tokenHeader) {
         String token = tokenHeader.replace("Bearer ", "");
-        String username = JWT.require(Algorithm.HMAC512(jwtSecret))
-                .build()
-                .verify(token)
+        String username = authenticationService.verifyJWTToken(token)
                 .getSubject();
 
         if (username == null) {

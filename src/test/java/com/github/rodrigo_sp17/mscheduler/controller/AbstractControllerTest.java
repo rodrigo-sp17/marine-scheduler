@@ -1,5 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.controller;
 
+import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import com.github.rodrigo_sp17.mscheduler.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ public abstract class AbstractControllerTest {
     protected SocialCredentialRepository socialCredentialRepository;
     @MockBean
     protected ClientRegistrationRepository clientRegistrationRepository;
+    @MockBean
+    protected AuthenticationService authenticationService;
 
     @Autowired
     protected MockMvc mvc;

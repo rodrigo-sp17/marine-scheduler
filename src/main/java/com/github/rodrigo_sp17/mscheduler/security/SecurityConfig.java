@@ -1,6 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
 import com.github.rodrigo_sp17.mscheduler.auth.OAuth2SuccessHandler;
+import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,16 +29,13 @@ import java.util.Arrays;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private final UserDetailsServiceImpl userDetailsService;
+    private AuthenticationService authenticationService;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
     @Autowired
     private SocialCredentialRepository socialCredentialRepository;
-    private final String jwtSecret;
-
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService,
-                          @Value("${jwt.secret}") String secret) {
-        this.userDetailsService = userDetailsService;
-        this.jwtSecret = secret;
-    }
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -50,6 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/user/recover",
                         "/api/user/changePassword",
                         "/api/user/resetPassword",
+                        "/refresh",
                         "/oauth2/delete"
                 ).permitAll()
                 .antMatchers(
@@ -80,8 +79,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
                 .exceptionHandling().authenticationEntryPoint(new Http403ForbiddenEntryPoint())
             .and()
-            .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtSecret))
-            .addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtSecret))
+            .addFilter(jwtAuthenticationFilter())
+            .addFilter(jwtAuthorizationFilter())
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -90,10 +89,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // TODO - cors and csrf
     }
 
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth)
             throws Exception {
         auth.userDetailsService(userDetailsService);
+    }
+
+    private JWTAuthenticationFilter jwtAuthenticationFilter() throws Exception {
+        return new JWTAuthenticationFilter(authenticationManager(),
+                authenticationService);
+    }
+
+    private JWTAuthorizationFilter jwtAuthorizationFilter() throws Exception {
+        return new JWTAuthorizationFilter(authenticationManager(),
+                authenticationService);
     }
 
     @Bean

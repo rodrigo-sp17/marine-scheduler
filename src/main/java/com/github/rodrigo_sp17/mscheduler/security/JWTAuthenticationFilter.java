@@ -1,11 +1,9 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,24 +17,19 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.ZoneId;
 
+@Slf4j
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    public static final Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
+    private final AuthenticationManager manager;
+    private final ObjectMapper mapper;
+    private final AuthenticationService authenticationService;
 
-    private AuthenticationManager manager;
-
-    private ObjectMapper mapper;
-
-    private String jwtSecret;
-
-    public JWTAuthenticationFilter(AuthenticationManager manager, String jwtSecret) {
+    public JWTAuthenticationFilter(AuthenticationManager manager,
+                                   AuthenticationService authenticationService) {
         this.manager = manager;
+        this.authenticationService = authenticationService;
         this.mapper = new ObjectMapper();
-        this.jwtSecret = jwtSecret;
     }
 
     @Override
@@ -64,16 +57,10 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
-                                            Authentication authResult) throws IOException, ServletException {
+                                            Authentication authResult) {
         User user = (User) authResult.getPrincipal();
-        String jwtToken = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(Date.from(LocalDate.now()
-                        .plusDays(SecurityConstants.JWT_DAYS_TO_EXPIRE)
-                        .atStartOfDay(ZoneId.systemDefault())
-                        .toInstant()))
-                .sign(Algorithm.HMAC512(jwtSecret));
-
+        var username = user.getUsername();
+        String jwtToken = authenticationService.login(username);
         response.addHeader("Authorization", "Bearer " + jwtToken);
     }
 }

@@ -2,6 +2,7 @@ package com.github.rodrigo_sp17.mscheduler.user;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredential;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialUserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
@@ -41,6 +42,8 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JavaMailSender javaMailSender;
+    @Autowired
+    private AuthenticationService authenticationService;
 
     @GetMapping
     public CollectionModel<String> getUsernames() {
@@ -140,7 +143,7 @@ public class UserController {
 
         String addedUsername = addedUser.getUserInfo().getUsername();
         log.info("Created new user: " + addedUsername);
-        String token = userService.encodeToken(addedUsername);
+        String token = authenticationService.login(addedUsername);
 
         UserDTO request = getDTOFromUser(addedUser);
         Link toNewUser = linkTo(methodOn(UserController.class).getLoggedUser(null))
@@ -201,7 +204,7 @@ public class UserController {
         }
 
         if (appUser != null) {
-            String resetToken = userService.createRecoveryToken(appUser,
+            String resetToken = authenticationService.createRecoveryToken(appUser,
                     LocalDateTime.now());
 
             // Send email
@@ -213,8 +216,8 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/changePassword")
-    public ResponseEntity<String> changePassword(@RequestParam String token) {
+    @PostMapping("/refresh")
+    public ResponseEntity<String> changePassword(@RequestHeader String authorization) {
         // validates
         // returns change password window
         // TODO - couple with React page. Unused for API password reset.
@@ -229,7 +232,7 @@ public class UserController {
         // Verifies token
         DecodedJWT decodedToken;
         try {
-            decodedToken = userService
+            decodedToken = authenticationService
                     .decodeRecoveryToken(passwordRequest.getUsername(), token);
         } catch (JWTVerificationException e) {
             errorMsg = "You are not authorized to perform resets";
