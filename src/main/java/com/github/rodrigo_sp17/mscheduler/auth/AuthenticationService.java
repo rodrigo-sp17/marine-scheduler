@@ -5,26 +5,31 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.github.rodrigo_sp17.mscheduler.security.SecurityConstants;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Date;
 import java.util.Optional;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Service
 public class AuthenticationService {
     @Value("${jwt.secret}")
-    private String jwtSecret;
+    private String JWT_SECRET;
+    @Value("${jwt.expiration-ms}")
+    private Long JWT_EXPIRATION;
+    @Value("${token.reset.expiration-ms}")
+    private Long RESET_TOKEN_EXPIRATION;
+    @Value("${token.refresh.expiration-ms}")
+    private Long REFRESH_TOKEN_EXPIRATION;
     @Autowired
     private UserService userService;
     @Autowired
@@ -58,7 +63,7 @@ public class AuthenticationService {
         // generate new token and adds to redis whitelist
         var newToken = encodeToken(username);
         redisTemplate.opsForSet().add(username, newToken);
-        redisTemplate.expire(username, Duration.ofDays(SecurityConstants.REFRESH_DAYS_TO_EXPIRE));
+        redisTemplate.expire(username, Duration.ofMillis(REFRESH_TOKEN_EXPIRATION));
 
         // returns new token
         return Optional.of(newToken);
@@ -85,7 +90,7 @@ public class AuthenticationService {
         var token = encodeToken(username);
         redisTemplate.opsForSet().add(username, token);
         redisTemplate.expire(username,
-                Duration.ofDays(SecurityConstants.REFRESH_DAYS_TO_EXPIRE));
+                Duration.ofMillis(REFRESH_TOKEN_EXPIRATION));
         return token;
     }
 
@@ -97,11 +102,8 @@ public class AuthenticationService {
     public String encodeToken(String username) {
         return JWT.create()
                 .withSubject(username)
-                .withExpiresAt(Date.from(LocalDate.now()
-                        .plusDays(SecurityConstants.JWT_DAYS_TO_EXPIRE)
-                        .atStartOfDay(ZoneId.systemDefault())
-                        .toInstant()))
-                .sign(Algorithm.HMAC512(jwtSecret));
+                .withExpiresAt(Date.from(Instant.now().plusMillis(JWT_EXPIRATION)))
+                .sign(Algorithm.HMAC512(JWT_SECRET));
     }
 
     /**
@@ -111,28 +113,42 @@ public class AuthenticationService {
      * @throws JWTVerificationException if the JWT is not valid or expired
      */
     public DecodedJWT verifyJWTToken(String token) throws JWTVerificationException {
-        return JWT.require(Algorithm.HMAC512(jwtSecret))
+        return JWT.require(Algorithm.HMAC512(JWT_SECRET))
                 .build()
                 .verify(token);
     }
 
+    /**
+     * Creates a recovery (reset) token.
+     * @param user the AppUser to be used as token subject
+     * @param issueDateTime the issuing timestamp of the token
+     * @return a String representing the recovery token
+     */
+    public String createRecoveryToken(AppUser user, LocalDateTime issueDateTime) {
+        var expDate = Date.from(issueDateTime
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+                .plusMillis(RESET_TOKEN_EXPIRATION));
 
-    public String createRecoveryToken(AppUser user, LocalDateTime time) {
         return JWT.create()
                 .withSubject(user.getUserInfo().getUsername())
-                .withExpiresAt(Timestamp.valueOf(time.plusMinutes(
-                        SecurityConstants.RESET_TOKEN_MINUTES_TO_EXPIRE))
-                )
-                .sign(Algorithm.HMAC512(jwtSecret + user.getUserInfo()
+                .withExpiresAt(expDate)
+                .sign(Algorithm.HMAC512(JWT_SECRET + user.getUserInfo()
                         .getPassword()));
     }
 
+    /**
+     * Decodes a recovery (reset) token
+     * @param username the username of the AppUser attempting recovery
+     * @param token the recovery token
+     * @return the decoded JWT with token information
+     */
     public DecodedJWT decodeRecoveryToken(String username, String token) {
-        if (token == null) throw new JWTVerificationException("Token is null");
-
+        if (token == null) {
+            throw new JWTVerificationException("Token is null");
+        }
         AppUser user = userService.getUserByUsername(username);
-
-        return JWT.require(Algorithm.HMAC512(jwtSecret
+        return JWT.require(Algorithm.HMAC512(JWT_SECRET
                 + user.getUserInfo().getPassword()))
                 .build()
                 .verify(token);
@@ -150,8 +166,8 @@ public class AuthenticationService {
 
     private boolean isTokenRefreshable(DecodedJWT decodedJWT) {
         var issuedDate = decodedJWT.getIssuedAt();
-        var issuedLocalDate = LocalDate.ofInstant(issuedDate.toInstant(), ZoneId.systemDefault());
-        return !issuedLocalDate.plusDays(SecurityConstants.REFRESH_DAYS_TO_EXPIRE).isAfter(LocalDate.now());
+        var refreshExpDate = new Date(issuedDate.getTime() + REFRESH_TOKEN_EXPIRATION);
+        var today = Date.from(Instant.now());
+        return refreshExpDate.after(today);
     }
-
 }

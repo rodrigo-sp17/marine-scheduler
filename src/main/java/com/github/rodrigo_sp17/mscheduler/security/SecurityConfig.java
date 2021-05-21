@@ -34,8 +34,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsServiceImpl userDetailsService;
     @Autowired
     private SocialCredentialRepository socialCredentialRepository;
-    @Value("${jwt.secret}")
-    private String jwtSecret;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -72,10 +70,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .oauth2Login(Customizer.withDefaults())
                 .oauth2Login()
                     .loginPage("/login")
-                    .successHandler(
-                        new OAuth2SuccessHandler(
-                                jwtSecret,
-                                socialCredentialRepository))
+                    .successHandler(oAuth2SuccessHandler())
             .and()
                 .exceptionHandling().authenticationEntryPoint(new Http403ForbiddenEntryPoint())
             .and()
@@ -85,25 +80,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .csrf().disable();
-
-                // TODO - cors and csrf
     }
-
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth)
             throws Exception {
         auth.userDetailsService(userDetailsService);
-    }
-
-    private JWTAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        return new JWTAuthenticationFilter(authenticationManager(),
-                authenticationService);
-    }
-
-    private JWTAuthorizationFilter jwtAuthorizationFilter() throws Exception {
-        return new JWTAuthorizationFilter(authenticationManager(),
-                authenticationService);
     }
 
     @Bean
@@ -131,6 +113,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private JWTAuthenticationFilter jwtAuthenticationFilter() throws Exception {
+        return new JWTAuthenticationFilter(authenticationManager(),
+                authenticationService);
+    }
+
+    private JWTAuthorizationFilter jwtAuthorizationFilter() throws Exception {
+        return new JWTAuthorizationFilter(authenticationManager(),
+                authenticationService);
+    }
+
+    private OAuth2SuccessHandler oAuth2SuccessHandler() {
+        return new OAuth2SuccessHandler(socialCredentialRepository, authenticationService);
     }
 
 }
