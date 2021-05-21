@@ -1,6 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
-import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
+import com.github.rodrigo_sp17.mscheduler.auth.AuthenticationService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;

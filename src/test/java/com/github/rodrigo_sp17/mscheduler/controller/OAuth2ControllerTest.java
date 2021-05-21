@@ -2,7 +2,7 @@ package com.github.rodrigo_sp17.mscheduler.controller;
 
 import com.github.rodrigo_sp17.mscheduler.TestData;
 import com.github.rodrigo_sp17.mscheduler.auth.OAuth2Service;
-import com.github.rodrigo_sp17.mscheduler.auth.OAuthController;
+import com.github.rodrigo_sp17.mscheduler.auth.OAuth2Controller;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredential;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -20,8 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@WebMvcTest(controllers = OAuthController.class)
-public class OAuthControllerTest extends AbstractControllerTest {
+@WebMvcTest(controllers = OAuth2Controller.class)
+public class OAuth2ControllerTest extends AbstractControllerTest {
 
     @MockBean
     private UserService userService;

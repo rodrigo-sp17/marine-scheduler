@@ -1,4 +1,4 @@
-package com.github.rodrigo_sp17.mscheduler.auth.data;
+package com.github.rodrigo_sp17.mscheduler.auth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

@@ -5,7 +5,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.rodrigo_sp17.mscheduler.TestData;
-import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.user.UserController;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;

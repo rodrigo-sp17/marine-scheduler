@@ -1,7 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
+import com.github.rodrigo_sp17.mscheduler.auth.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

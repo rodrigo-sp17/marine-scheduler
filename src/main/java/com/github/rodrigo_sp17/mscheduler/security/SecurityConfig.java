@@ -1,7 +1,7 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
 import com.github.rodrigo_sp17.mscheduler.auth.OAuth2SuccessHandler;
-import com.github.rodrigo_sp17.mscheduler.auth.data.AuthenticationService;
+import com.github.rodrigo_sp17.mscheduler.auth.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/oauth2")
-public class OAuthController {
+public class OAuth2Controller {
     @Autowired
     private SocialCredentialRepository socialCredentialRepository;
     @Autowired
