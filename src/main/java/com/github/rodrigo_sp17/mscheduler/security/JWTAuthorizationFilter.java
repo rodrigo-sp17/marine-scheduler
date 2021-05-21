@@ -1,5 +1,6 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.github.rodrigo_sp17.mscheduler.auth.AuthenticationService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,8 +42,13 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
     private UsernamePasswordAuthenticationToken parseToken(String tokenHeader) {
         String token = tokenHeader.replace("Bearer ", "");
-        String username = authenticationService.verifyJWTToken(token)
-                .getSubject();
+        String username;
+        try {
+            username = authenticationService.verifyJWTToken(token)
+                    .getSubject();
+        } catch (JWTVerificationException e) {
+            return null;
+        }
 
         if (username == null) {
             return null;

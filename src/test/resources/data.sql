@@ -8,7 +8,9 @@ VALUES
     (8, 'fifthwheel@gmail.com', 'Fivus', 'hashedpassword5', 'fifth_wheel'),
     (9, 'fulano@hotmail.com', 'Fulano Fulanaldo', 'snjadhkajakjha', 'fulaninn'),
     (10, 'hated@mail.com', 'Hated Guy', 'hatedpsdas', 'hated13'),
-    (11, 'emailToEdit@mail.com', 'Edited Guy', 'pasdsjudhas', 'edi_guy');
+    (11, 'emailToEdit@mail.com', 'Edited Guy', 'pasdsjudhas', 'edi_guy'),
+    (12, 'andanotheremail@mail.com', 'Real Guy', '{bcrypt}$2a$10$1CEwa1T.h9g5q35pllz/2ODIP5WmtMqVzDwpxXkP6b0RxP46RZTqu',
+     'real_guy');
 
 INSERT INTO
 APP_USER_FRIENDS(app_user_user_id, friends_user_id)

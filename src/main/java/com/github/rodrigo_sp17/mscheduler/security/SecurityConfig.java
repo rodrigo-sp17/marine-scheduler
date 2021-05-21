@@ -1,10 +1,10 @@
 package com.github.rodrigo_sp17.mscheduler.security;
 
-import com.github.rodrigo_sp17.mscheduler.auth.OAuth2SuccessHandler;
 import com.github.rodrigo_sp17.mscheduler.auth.AuthenticationService;
+import com.github.rodrigo_sp17.mscheduler.auth.OAuth2SuccessHandler;
+import com.github.rodrigo_sp17.mscheduler.auth.data.JWTLogoutSuccessHandler;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredentialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -74,6 +74,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
                 .exceptionHandling().authenticationEntryPoint(new Http403ForbiddenEntryPoint())
             .and()
+                .logout().logoutSuccessHandler(jwtLogoutSuccessHandler())
+            .and()
             .addFilter(jwtAuthenticationFilter())
             .addFilter(jwtAuthorizationFilter())
             .sessionManagement()
@@ -127,6 +129,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private OAuth2SuccessHandler oAuth2SuccessHandler() {
         return new OAuth2SuccessHandler(socialCredentialRepository, authenticationService);
+    }
+
+    private JWTLogoutSuccessHandler jwtLogoutSuccessHandler() {
+        return new JWTLogoutSuccessHandler(authenticationService);
     }
 
 }

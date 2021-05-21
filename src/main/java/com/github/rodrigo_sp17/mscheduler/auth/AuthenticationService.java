@@ -18,9 +18,9 @@ import java.time.*;
 import java.util.Date;
 import java.util.Optional;
 
+@Service
 @AllArgsConstructor
 @NoArgsConstructor
-@Service
 public class AuthenticationService {
     @Value("${jwt.secret}")
     private String JWT_SECRET;
@@ -71,10 +71,11 @@ public class AuthenticationService {
 
     /**
      * Logs a user out.
-     * @param username the username of the User to log out
+     * @param jwtToken the JWT token of the user to logout
      * @return true if successful, else false
      */
-    public boolean logout(String username) {
+    public boolean logout(String jwtToken) {
+        var username = verifyJWTToken(jwtToken).getSubject();
         // logged out is represented by absence of user key on cache
         var loggedOut = redisTemplate.delete(username);
         return loggedOut != null && loggedOut;
@@ -165,7 +166,8 @@ public class AuthenticationService {
     }
 
     private boolean isTokenRefreshable(DecodedJWT decodedJWT) {
-        var issuedDate = decodedJWT.getIssuedAt();
+        var tokenExpDate = decodedJWT.getExpiresAt();
+        var issuedDate = Date.from(tokenExpDate.toInstant().minusMillis(JWT_EXPIRATION));
         var refreshExpDate = new Date(issuedDate.getTime() + REFRESH_TOKEN_EXPIRATION);
         var today = Date.from(Instant.now());
         return refreshExpDate.after(today);
