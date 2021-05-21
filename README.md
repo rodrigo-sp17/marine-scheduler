@@ -33,7 +33,8 @@ coupled with the SeaMates web app, using Spring MVC for deploying the app to the
 Routing and rendering is done client-side.
 
 Security is achieved by JWTs, delegating to the client the responsibility of storing its tokens and sending them with
-every request. There is also support for OAuth2 authentication and signup.
+every request. Once expired, the token can be refreshed, where it will be checked against a Redis whitelist that is
+cleared on logout. There is also support for OAuth2 authentication and signup.
 
 Testing is done extensively, including unit, web-layer and integration tests with in-memory databases. It is also
 deployed to a test environment in the same cloud provider from the production one for manual testing and full database
@@ -110,6 +111,7 @@ mvn spring-boot:run
 - [Spring Security](https://spring.io/projects/spring-security)
 - [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
 - [Spring HATEOAS](https://spring.io/projects/spring-hateoas)
+- [Redis](https://redis.io)
 - [Docker](https://www.docker.com/)
 - [Java JWT](https://github.com/auth0/java-jwt)
 - [Springdoc-openapi](https://springdoc.org/)
