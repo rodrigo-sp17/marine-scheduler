@@ -3,34 +3,39 @@ package com.github.rodrigo_sp17.mscheduler.friend;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestRepository;
 import com.github.rodrigo_sp17.mscheduler.friend.exception.FriendRequestNotFoundException;
+import com.github.rodrigo_sp17.mscheduler.push.PushEvent;
+import com.github.rodrigo_sp17.mscheduler.push.PushService;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class FriendService {
-
-    public static final Logger log = LoggerFactory.getLogger(FriendService.class);
-
     @Autowired
     private final FriendRequestRepository requestRepository;
-
     @Autowired
     private final UserService userService;
+    @Autowired
+    private final PushService pushService;
 
-    public FriendService(FriendRequestRepository requestRepository, UserService userService) {
+    public FriendService(FriendRequestRepository requestRepository,
+                         PushService pushService,
+                         UserService userService) {
         this.requestRepository = requestRepository;
         this.userService = userService;
+        this.pushService = pushService;
     }
 
     public List<AppUser> getFriendsByUser(String username) {
@@ -60,7 +65,7 @@ public class FriendService {
         List<Long> requestIds = requests.stream()
                 .filter(fr -> fr.getTarget().getUserInfo().getUsername().equals(friendName)
                             || fr.getSource().getUserInfo().getUsername().equals(friendName))
-                .map(fr -> fr.getId())
+                .map(FriendRequest::getId)
                 .collect(Collectors.toList());
 
         if (!requestIds.isEmpty()) {
@@ -93,6 +98,8 @@ public class FriendService {
         var result = requestRepository.save(friendRequest);
 
         log.info("Friend request created");
+        sendRequestEvent(friendName, username);
+
         return result;
     }
 
@@ -134,5 +141,21 @@ public class FriendService {
         userService.saveUser(owner);
         userService.saveUser(friend);
         log.info("Friendship removed");
+    }
+
+    private void sendRequestEvent(String friendName, String username) {
+        var event = getRequestEvent(friendName, username);
+        pushService.pushNotification(friendName, event);
+        pushService.pushNotification(username, event);
+    }
+
+    private PushEvent getRequestEvent(String friendName, String username) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("source", username);
+        body.put("target", friendName);
+        return new PushEvent(
+                "FRIEND_REQUEST",
+                body
+        );
     }
 }

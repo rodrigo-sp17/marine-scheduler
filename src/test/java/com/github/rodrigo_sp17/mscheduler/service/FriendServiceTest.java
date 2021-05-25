@@ -3,6 +3,7 @@ package com.github.rodrigo_sp17.mscheduler.service;
 import com.github.rodrigo_sp17.mscheduler.TestData;
 import com.github.rodrigo_sp17.mscheduler.friend.FriendService;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestRepository;
+import com.github.rodrigo_sp17.mscheduler.push.PushService;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,9 @@ public class FriendServiceTest {
     private FriendRequestRepository friendRequestRepository = Mockito
             .mock(FriendRequestRepository.class);
 
-    private FriendService friendService = new FriendService(friendRequestRepository, userService);
+    private PushService pushService = Mockito.mock(PushService.class);
+
+    private FriendService friendService = new FriendService(friendRequestRepository, pushService, userService);
 
     @Test
     public void testRequestFriendshipWhileAlreadyFriends() {
