@@ -38,6 +38,12 @@ PERFORMANCE OF THIS SOFTWARE.
  * @license MIT
  */
 
+/** @license
+ * eventsource.js
+ * Available under MIT License (MIT)
+ * https://github.com/Yaffle/EventSource/
+ */
+
 /** @license React v0.20.1
  * scheduler.production.min.js
  *
