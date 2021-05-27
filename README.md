@@ -58,6 +58,7 @@ MAIL_PASSWORD
 JWT_SECRET
 FACEBOOK_ID
 FACEBOOK_SECRET
+REDIS_URL
 PORT
 ```
 
@@ -105,6 +106,7 @@ mvn spring-boot:run
 - Requesting, accepting and deleting friendships
 - Work shift calendar - know when your friends are available
 - Facebook login and signup
+- Push notifications - be alerted of your friends in real time  
 - Account recovery
 - Events
 
