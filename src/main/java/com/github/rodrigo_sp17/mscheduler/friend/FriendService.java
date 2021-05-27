@@ -3,8 +3,10 @@ package com.github.rodrigo_sp17.mscheduler.friend;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequest;
 import com.github.rodrigo_sp17.mscheduler.friend.data.FriendRequestRepository;
 import com.github.rodrigo_sp17.mscheduler.friend.exception.FriendRequestNotFoundException;
-import com.github.rodrigo_sp17.mscheduler.push.PushEvent;
 import com.github.rodrigo_sp17.mscheduler.push.PushService;
+import com.github.rodrigo_sp17.mscheduler.push.events.FriendAcceptEvent;
+import com.github.rodrigo_sp17.mscheduler.push.events.FriendRequestEvent;
+import com.github.rodrigo_sp17.mscheduler.push.events.PushEvent;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
@@ -15,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,8 +44,7 @@ public class FriendService {
     }
 
     public List<FriendRequest> getFriendRequestsForUser(String username) {
-        List<FriendRequest> requests = requestRepository.findRequestsContaining(username);
-        return requests;
+        return requestRepository.findRequestsContaining(username);
     }
 
     public FriendRequest getRequestById(Long requestId, String owner) {
@@ -86,7 +85,6 @@ public class FriendService {
             throw new IllegalArgumentException("Cannot request friendship to a friend");
         }
 
-
         // if not, build request, save and return
         AppUser friend = userService.getUserByUsername(friendName);
         var friendRequest = new FriendRequest();
@@ -123,6 +121,8 @@ public class FriendService {
         // Removes request since friendship was established
         requestRepository.deleteById(request.getId());
 
+        sendAcceptEvent(friendName, username);
+
         return friend;
     }
 
@@ -144,18 +144,14 @@ public class FriendService {
     }
 
     private void sendRequestEvent(String friendName, String username) {
-        var event = getRequestEvent(friendName, username);
+        PushEvent event = new FriendRequestEvent(username, friendName);
         pushService.pushNotification(friendName, event);
         pushService.pushNotification(username, event);
     }
 
-    private PushEvent getRequestEvent(String friendName, String username) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("source", username);
-        body.put("target", friendName);
-        return new PushEvent(
-                "FRIEND_REQUEST",
-                body
-        );
+    private void sendAcceptEvent(String friendName, String username) {
+        PushEvent event = new FriendAcceptEvent(username, friendName);
+        pushService.pushNotification(friendName, event);
+        pushService.pushNotification(username, event);
     }
 }
