@@ -37,6 +37,7 @@ public class PushService {
      */
     public SseEmitter subscribe(String username) {
         var emitter = new SseEmitter(SSE_TIMEOUT_MS);
+        emitter.onTimeout(() -> emitters.remove(username));
         emitter.onCompletion(() -> emitters.remove(username));
         emitter.onError(e -> {
             log.debug("Exception creating emitter", e);
