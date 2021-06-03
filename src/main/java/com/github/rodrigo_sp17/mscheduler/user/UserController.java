@@ -6,10 +6,15 @@ import com.github.rodrigo_sp17.mscheduler.auth.AuthenticationService;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialCredential;
 import com.github.rodrigo_sp17.mscheduler.auth.data.SocialUserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.AppUser;
-import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.PasswordRequestDTO;
+import com.github.rodrigo_sp17.mscheduler.user.data.UserDTO;
 import com.github.rodrigo_sp17.mscheduler.user.data.UserInfo;
 import com.github.rodrigo_sp17.mscheduler.user.exceptions.UserNotFoundException;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -25,9 +30,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
-import java.sql.Date;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,6 +50,7 @@ public class UserController {
     @Autowired
     private AuthenticationService authenticationService;
 
+    @Hidden
     @GetMapping
     public CollectionModel<String> getUsernames() {
         List<String> usernames = userService.getUsernames();
@@ -55,6 +58,11 @@ public class UserController {
         return CollectionModel.of(usernames).add(selfLink);
     }
 
+    @Operation(summary = "Gets info from logged user", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @SecurityRequirements
     @GetMapping("/me")
     public ResponseEntity<AppUser> getLoggedUser(Authentication auth) {
         String username = auth.getName();
@@ -64,6 +72,11 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Operation(summary = "Signs up a new user", responses = {
+            @ApiResponse(responseCode = "201", description = "User was created"),
+            @ApiResponse(responseCode = "400", description = "Invalid data"),
+            @ApiResponse(responseCode = "409", description = "Username or email already exists"),
+    })
     @PostMapping("/signup")
     public ResponseEntity<UserDTO> signup(@Valid @RequestBody UserDTO req) {
         AppUser user = new AppUser();
@@ -111,9 +124,14 @@ public class UserController {
         return ResponseEntity.created(toNewUser.toUri()).body(request);
     }
 
+    @Hidden
+    @Operation(summary = "Signs up OAuth2 authenticated users", responses = {
+            @ApiResponse(responseCode = "201", description = "User was created",
+                    headers = @Header(name = "Authorization", description = "Bearer token")),
+            @ApiResponse(responseCode = "409", description = "Username or email already exists")
+    })
     @PostMapping("/socialSignup")
-    public ResponseEntity<UserDTO> socialSignup(@Valid @RequestBody SocialUserDTO req)
-             {
+    public ResponseEntity<UserDTO> socialSignup(@Valid @RequestBody SocialUserDTO req) {
         AppUser user = new AppUser();
         user.setUserInfo(new UserInfo());
 
@@ -158,6 +176,12 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Edits info for an existing user", responses = {
+            @ApiResponse(responseCode = "200", description = "Edition successful"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "409", description = "Email already exists")
+    })
+    @SecurityRequirements
     @PutMapping
     public ResponseEntity<UserDTO> editUserInfo(@RequestBody UserDTO req) {
         AppUser userToEdit = userService.getUserById(req.getUserId());
@@ -177,6 +201,13 @@ public class UserController {
         return ResponseEntity.ok(request);
     }
 
+    @Operation(summary = "Permanently deletes an AppUser", responses = {
+            @ApiResponse(responseCode = "204", description = "Deletion successful"),
+            @ApiResponse(responseCode = "403", description = "Account deletion was not authorized"),
+            @ApiResponse(responseCode = "404", description = "User was not found"),
+            @ApiResponse(responseCode = "500", description = "Unknown server error")
+    })
+    @SecurityRequirements
     @DeleteMapping("/delete")
     public ResponseEntity<UserDTO> deleteUser(Authentication auth,
                                                         @RequestHeader String password) {
@@ -195,8 +226,12 @@ public class UserController {
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Deletion failed");
     }
 
+    @Operation(summary = "Starts account recovery process for a user", responses = {
+            @ApiResponse(responseCode = "200", description = "Recovery initiated")
+    })
     @PostMapping("/recover")
-    public ResponseEntity<String> recoverAccount(@RequestParam String user) {
+    @ResponseStatus(HttpStatus.OK)
+    public void recoverAccount(@RequestParam String user) {
         AppUser appUser = null;
 
         // Attempts to fetch user
@@ -215,10 +250,9 @@ public class UserController {
             javaMailSender.send(email);
             log.info("Recovery e-mail sent to: " + appUser.getUserInfo().getEmail());
         }
-
-        return ResponseEntity.ok().build();
     }
 
+    @Hidden
     @PostMapping("/refresh")
     public ResponseEntity<String> changePassword(@RequestHeader String authorization) {
         // validates
@@ -227,6 +261,11 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Resets the password for a given recovery token", responses = {
+            @ApiResponse(responseCode = "200", description = "Reset successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid data or non-matching passwords"),
+            @ApiResponse(responseCode = "403", description = "Reset not authorized")
+    })
     @PostMapping("/resetPassword")
     public ResponseEntity<String> resetPassword(@RequestHeader("reset") String token,
                                                 @Valid @RequestBody PasswordRequestDTO passwordRequest) {
