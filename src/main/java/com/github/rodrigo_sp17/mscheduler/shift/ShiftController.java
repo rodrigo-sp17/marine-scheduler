@@ -3,6 +3,9 @@ package com.github.rodrigo_sp17.mscheduler.shift;
 import com.github.rodrigo_sp17.mscheduler.shift.data.Shift;
 import com.github.rodrigo_sp17.mscheduler.shift.data.ShiftRequestDTO;
 import com.github.rodrigo_sp17.mscheduler.user.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
@@ -23,12 +26,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/api/shift")
 public class ShiftController {
-
     @Autowired
     private ShiftService shiftService;
     @Autowired
     private UserService userService;
 
+    @Operation(summary = "Gets shifts by their id", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "404", description = "Shift not found for user")
+    })
+    @SecurityRequirements
     @GetMapping("/{id}")
     public ResponseEntity<Shift> getShiftById(@PathVariable Long id,
                                               Authentication auth) {
@@ -39,6 +46,10 @@ public class ShiftController {
         return ResponseEntity.ok(shift);
     }
 
+    @Operation(summary = "Gets all shifts for logged in user", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @SecurityRequirements
     @GetMapping
     public ResponseEntity<CollectionModel<Shift>> getShifts(Authentication auth) {
         List<Shift> shifts = shiftService.getShiftsForUser(auth.getName());
@@ -46,9 +57,14 @@ public class ShiftController {
                 .getShiftById(s.getShiftId(), null)).withSelfRel()));
         Link allShifts = linkTo(methodOn(ShiftController.class).getShifts(null))
                 .withRel("allShifts");
-        return ResponseEntity.ok(CollectionModel.of(shifts).add());
+        return ResponseEntity.ok(CollectionModel.of(shifts).add(allShifts));
     }
 
+    @Operation(summary = "Adds a shift for the logged user", responses = {
+            @ApiResponse(responseCode = "200", description = "Shifts added"),
+            @ApiResponse(responseCode = "400", description = "Invalid shift or request data"),
+    })
+    @SecurityRequirements
     @PostMapping("/add")
     public ResponseEntity<CollectionModel<Shift>> addShift(
             @Valid @RequestBody ShiftRequestDTO shiftRequest,
@@ -85,31 +101,11 @@ public class ShiftController {
             repeat = 0;
         }
 
-        // Creates the necessary number of shifts according to the the repeat parameter
-        long cycleDays = ChronoUnit.DAYS.between(req.getBoardingDate(),
-                req.getLeavingDate());
-        long beforeDiff = ChronoUnit.DAYS.between(req.getUnavailabilityStartDate(),
-                req.getBoardingDate());
-        long afterDiff = ChronoUnit.DAYS.between(req.getLeavingDate(),
-                req.getUnavailabilityEndDate());
-
-        List<Shift> shifts = new ArrayList<>();
-        for (int i = 0; i <= repeat; i++) {
-            Shift shift = new Shift();
-            shift.setBoardingDate(
-                    req.getBoardingDate()
-                            .plusDays(i * 2 * cycleDays));
-            shift.setLeavingDate(req.getLeavingDate()
-                    .plusDays(i * 2 * cycleDays));
-            shift.setUnavailabilityStartDate(
-                    shift.getBoardingDate().minusDays(beforeDiff));
-            shift.setUnavailabilityEndDate(
-                    shift.getLeavingDate().plusDays(afterDiff));
-            shifts.add(shift);
-        }
+        var shifts = repeatShifts(req, repeat);
 
         // Saves shifts
         List<Shift> addedShifts = shiftService.addShifts(shifts, auth.getName());
+
         addedShifts.forEach(s -> s.add(linkTo(methodOn(ShiftController.class)
                 .getShiftById(s.getShiftId(), null)).withSelfRel()));
         Link allShifts = linkTo(methodOn(ShiftController.class).getShifts(null))
@@ -117,6 +113,12 @@ public class ShiftController {
         return ResponseEntity.ok(CollectionModel.of(addedShifts).add(allShifts));
     }
 
+    @Operation(summary = "Edits a shift for the logged-in user", responses = {
+            @ApiResponse(responseCode = "200", description = "Edition successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid shift or request data"),
+            @ApiResponse(responseCode = "401", description = "Shift edition unauthorized")
+    })
+    @SecurityRequirements
     @PutMapping("/edit")
     public ResponseEntity<Shift> editShift(@RequestBody ShiftRequestDTO shiftRequest,
                                            Authentication auth) {
@@ -153,6 +155,11 @@ public class ShiftController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Removes a shift for the logged-in user", responses = {
+            @ApiResponse(responseCode = "204", description = "Deletion successful"),
+            @ApiResponse(responseCode = "400", description = "Shift not found or ownership not confirmed")
+    })
+    @SecurityRequirements
     @DeleteMapping("/remove")
     public ResponseEntity<Shift> removeShift(@RequestParam Long id,
                                                            Authentication auth) {
@@ -205,5 +212,31 @@ public class ShiftController {
             request.setUnavailabilityEndDate(request.getLeavingDate());
         }
         return request;
+    }
+
+    private List<Shift> repeatShifts(ShiftRequestDTO req, int repeatTimes) {
+        // Creates the necessary number of shifts according to the the repeat parameter
+        long cycleDays = ChronoUnit.DAYS.between(req.getBoardingDate(),
+                req.getLeavingDate());
+        long beforeDiff = ChronoUnit.DAYS.between(req.getUnavailabilityStartDate(),
+                req.getBoardingDate());
+        long afterDiff = ChronoUnit.DAYS.between(req.getLeavingDate(),
+                req.getUnavailabilityEndDate());
+
+        List<Shift> shifts = new ArrayList<>();
+        for (int i = 0; i <= repeatTimes; i++) {
+            Shift shift = new Shift();
+            shift.setBoardingDate(
+                    req.getBoardingDate()
+                            .plusDays(i * 2 * cycleDays));
+            shift.setLeavingDate(req.getLeavingDate()
+                    .plusDays(i * 2 * cycleDays));
+            shift.setUnavailabilityStartDate(
+                    shift.getBoardingDate().minusDays(beforeDiff));
+            shift.setUnavailabilityEndDate(
+                    shift.getLeavingDate().plusDays(afterDiff));
+            shifts.add(shift);
+        }
+        return shifts;
     }
 }
