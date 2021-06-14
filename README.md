@@ -108,7 +108,7 @@ mvn spring-boot:run
 - Facebook login and signup
 - Push notifications - be alerted of your friends in real time  
 - Account recovery
-- Events
+- Responsive web app
 
 
 ## Tech Stack
